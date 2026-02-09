@@ -2,14 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>FrostPH Risk Map (Benguet)</title>
+  <title>FrostPH Risk Map (OSM basemap)</title>
 
   <script src="https://cesium.com/downloads/cesiumjs/releases/1.116/Build/Cesium/Cesium.js"></script>
   <link href="https://cesium.com/downloads/cesiumjs/releases/1.116/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
 
   <style>
     html, body, #cesiumContainer { width:100%; height:100%; margin:0; padding:0; overflow:hidden; }
-
     .panel {
       position:absolute; top:12px; left:12px; z-index:999;
       background:rgba(255,255,255,0.95); padding:10px 12px; border-radius:10px;
@@ -18,7 +17,6 @@
     }
     .row { margin-top:8px; }
     input[type="range"] { width:230px; }
-
     .legend { margin-top:10px; line-height:1.6; }
     .swatch { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:6px; vertical-align:middle; }
   </style>
@@ -29,7 +27,7 @@
 
   <div class="panel">
     <b>FrostPH Risk Map</b><br>
-    Benguet Province
+    (OSM basemap • Asset 4431024)
 
     <div class="row">
       <b>Risk overlay opacity</b><br>
@@ -48,121 +46,70 @@
 
   <script>
     // =========================
-    // CONFIG (YOUR ASSETS)
+    // CONFIG
     // =========================
-    const RISK_ASSET_ID = 4430940;      // FrostRisk_FINAL
-    const BOUNDARY_ASSET_ID = 4076193; // Benguet Municipality_geojson
-    const RISK_FIELD = "RiskCls";
+    const RISK_ASSET_ID = 4431024;     // FrostRiskPrelim geojson
+    const RISK_FIELD = "RiskCls";      // <-- change if your column differs
 
-    // Rough Benguet bounds (buffered) for camera lock (tweak if you want tighter)
-    const BENGUET_RECT = Cesium.Rectangle.fromDegrees(
-      120.05, 15.75,  // west, south
-      121.65, 17.45   // east, north
-    );
+    // Start near Benguet (just a start view; no lock yet)
+    const START_RECT = Cesium.Rectangle.fromDegrees(120.05, 15.75, 121.65, 17.45);
 
     // =========================
-    // 1) TOKEN
+    // TOKEN (PASTE YOUR NEW TOKEN HERE — DO NOT SHARE IT)
     // =========================
-    Cesium.Ion.defaultAccessToken = "PASTE_YOUR_TOKEN_HERE";
+    Cesium.Ion.defaultAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJmNDNkZTM0OS00YjJjLTQ1NGYtODY3OC04NGJkNTMyNTVjMzciLCJpZCI6MzU5OTE1LCJpYXQiOjE3NzA2MTk2NTR9.7AMr5xm4NqjOYC-WuCZv1OHw-JwpQsQaXCOl01SE0_0";
 
     // =========================
-    // 2) VIEWER
+    // VIEWER (OSM basemap so it won't be black)
     // =========================
     const viewer = new Cesium.Viewer("cesiumContainer", {
-      terrain: Cesium.Terrain.fromWorldTerrain(),
+      imageryProvider: new Cesium.OpenStreetMapImageryProvider({
+        url: "https://a.tile.openstreetmap.org/"
+      }),
+      baseLayerPicker: false,
+      terrainProvider: new Cesium.EllipsoidTerrainProvider(), // flat earth
       animation: false,
       timeline: false,
-      baseLayerPicker: true,
       sceneModePicker: true,
-      geocoder: true,
+      geocoder: false,
       homeButton: true
     });
 
-    // Make sure we don’t get “space view” confusion
-    viewer.scene.skyBox.show = true;
+    viewer.camera.setView({ destination: START_RECT });
+    viewer.homeButton.viewModel.command.beforeExecute.addEventListener((e) => {
+      e.cancel = true;
+      viewer.camera.flyTo({ destination: START_RECT });
+    });
 
     // =========================
-    // 3) COLORS (None/Mild/Moderate/Severe)
+    // COLORS
     // =========================
-    function norm(v) {
-      return (v ?? "").toString().trim().toLowerCase();
-    }
+    function norm(v) { return (v ?? "").toString().trim().toLowerCase(); }
 
     function riskColor(levelRaw) {
       const level = norm(levelRaw);
       if (level === "severe")   return Cesium.Color.fromCssColorString("#1565c0"); // blue
       if (level === "moderate") return Cesium.Color.fromCssColorString("#f9a825"); // yellow
       if (level === "mild")     return Cesium.Color.fromCssColorString("#2e7d32"); // green
-      return Cesium.Color.fromCssColorString("#e0e0e0"); // none/unknown = gray
+      return Cesium.Color.fromCssColorString("#e0e0e0"); // none/unknown
     }
 
     // =========================
-    // 4) MASK OUTSIDE BENGUET (rectangle with municipality holes)
+    // LOAD RISK LAYER
     // =========================
-    async function addBenguetMask() {
-      const boundaryDS = await Cesium.GeoJsonDataSource.load(
-        Cesium.IonResource.fromAssetId(BOUNDARY_ASSET_ID),
-        { clampToGround: true }
-      );
-      viewer.dataSources.add(boundaryDS);
-
-      const polys = boundaryDS.entities.values.filter(e => e.polygon && e.polygon.hierarchy);
-      if (!polys.length) {
-        console.error("Boundary asset has no polygons.");
-        return boundaryDS;
+    (async () => {
+      let ds;
+      try {
+        ds = await Cesium.GeoJsonDataSource.load(
+          Cesium.IonResource.fromAssetId(RISK_ASSET_ID),
+          { clampToGround: true }
+        );
+      } catch (err) {
+        console.error("Failed loading risk asset:", err);
+        alert("Risk asset failed to load. Open Console (F12) and check errors.");
+        return;
       }
 
-      const now = Cesium.JulianDate.now();
-
-      // Big rectangle around Northern Luzon
-      const rectPositions = Cesium.Cartesian3.fromDegreesArray([
-        114, 5,
-        130, 5,
-        130, 22,
-        114, 22
-      ]);
-
-      // Build holes from ALL municipality polygons
-      const holes = polys.map(e => {
-        const h = e.polygon.hierarchy.getValue(now);
-        // Keep ONLY outer positions for each municipality as a hole.
-        // (If a municipality polygon has internal holes, it’s still fine for masking.)
-        return new Cesium.PolygonHierarchy(h.positions);
-      });
-
-      // Mask polygon: dark outside, Benguet holes remain visible
-      viewer.entities.add({
-        name: "Outside Benguet Mask",
-        polygon: {
-          hierarchy: new Cesium.PolygonHierarchy(rectPositions, holes),
-          material: Cesium.Color.BLACK.withAlpha(0.78),
-          outline: false,
-          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-          classificationType: Cesium.ClassificationType.BOTH
-        }
-      });
-
-      // Hide boundary fill (optional). Keep a crisp outline so Benguet edge is visible.
-      for (const e of boundaryDS.entities.values) {
-        if (e.polygon) {
-          e.polygon.material = Cesium.Color.TRANSPARENT;
-          e.polygon.outline = true;
-          e.polygon.outlineColor = Cesium.Color.WHITE.withAlpha(0.9);
-        }
-        if (e.polyline) e.polyline.show = false;
-      }
-
-      return boundaryDS;
-    }
-
-    // =========================
-    // 5) RISK LAYER (color by RiskCls + slider)
-    // =========================
-    async function loadRiskLayer() {
-      const ds = await Cesium.GeoJsonDataSource.load(
-        Cesium.IonResource.fromAssetId(RISK_ASSET_ID),
-        { clampToGround: true }
-      );
       viewer.dataSources.add(ds);
 
       const entities = ds.entities.values;
@@ -176,7 +123,7 @@
         baseColors.set(e.id, base);
 
         e.polygon.outline = true;
-        e.polygon.outlineColor = Cesium.Color.WHITE.withAlpha(0.6);
+        e.polygon.outlineColor = Cesium.Color.BLACK.withAlpha(0.35);
 
         const name =
           e.properties?.ADM4_EN?.getValue?.() ??
@@ -206,85 +153,7 @@
         applyOpacity(pct / 100);
       });
 
-      return ds;
-    }
-
-    // =========================
-    // 6) CAMERA: START IN BENGUET + LOCK TO BENGUET
-    // =========================
-    function setHomeToBenguet() {
-      // Override Home button to always go to Benguet
-      viewer.homeButton.viewModel.command.beforeExecute.addEventListener((e) => {
-        e.cancel = true;
-        viewer.camera.flyTo({ destination: BENGUET_RECT });
-      });
-
-      // Start view
-      viewer.camera.setView({ destination: BENGUET_RECT });
-
-      // Basic controller limits (prevents extreme zoom/pitch weirdness)
-      const c = viewer.scene.screenSpaceCameraController;
-      c.minimumZoomDistance = 1000;     // ~1 km
-      c.maximumZoomDistance = 250000;   // ~250 km
-    }
-
-    function lockCameraToRectangle(rect) {
-      let clamping = false;
-
-      function clampCamera() {
-        if (clamping) return;
-        clamping = true;
-
-        const carto = viewer.camera.positionCartographic;
-        if (!carto) { clamping = false; return; }
-
-        const lon = carto.longitude;
-        const lat = carto.latitude;
-
-        const clampedLon = Cesium.Math.clamp(lon, rect.west, rect.east);
-        const clampedLat = Cesium.Math.clamp(lat, rect.south, rect.north);
-
-        // If outside, snap back inside
-        const outside = (lon !== clampedLon) || (lat !== clampedLat);
-        if (outside) {
-          viewer.camera.setView({
-            destination: Cesium.Cartesian3.fromRadians(clampedLon, clampedLat, carto.height),
-            orientation: {
-              heading: viewer.camera.heading,
-              pitch: viewer.camera.pitch,
-              roll: viewer.camera.roll
-            }
-          });
-        }
-
-        clamping = false;
-      }
-
-      // Clamp after movements
-      viewer.camera.changed.addEventListener(clampCamera);
-
-      // Also clamp after user finishes interactions
-      const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
-      handler.setInputAction(clampCamera, Cesium.ScreenSpaceEventType.LEFT_UP);
-      handler.setInputAction(clampCamera, Cesium.ScreenSpaceEventType.MIDDLE_UP);
-      handler.setInputAction(clampCamera, Cesium.ScreenSpaceEventType.RIGHT_UP);
-      handler.setInputAction(clampCamera, Cesium.ScreenSpaceEventType.WHEEL);
-      handler.setInputAction(clampCamera, Cesium.ScreenSpaceEventType.PINCH_END);
-    }
-
-    // =========================
-    // 7) RUN
-    // =========================
-    (async () => {
-      setHomeToBenguet();
-      lockCameraToRectangle(BENGUET_RECT);
-
-      const boundaryDS = await addBenguetMask();
-      const riskDS = await loadRiskLayer();
-
-      // Ensure we start focused on Benguet content
-      await viewer.flyTo(boundaryDS);
-      await viewer.flyTo(riskDS);
+      await viewer.flyTo(ds);
     })();
   </script>
 </body>
