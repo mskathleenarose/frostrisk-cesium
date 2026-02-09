@@ -27,7 +27,7 @@
 
   <div class="panel">
     <b>FrostPH Risk Map</b><br>
-    (OSM basemap • Asset 4431024)
+    Asset: 4431024
 
     <div class="row">
       <b>Risk overlay opacity</b><br>
@@ -45,29 +45,23 @@
   </div>
 
   <script>
-    // =========================
-    // CONFIG
-    // =========================
-    const RISK_ASSET_ID = 4431024;     // FrostRiskPrelim geojson
-    const RISK_FIELD = "RiskCls";      // <-- change if your column differs
+    // ===== CONFIG =====
+    const RISK_ASSET_ID = 4431024;
+    const RISK_FIELD = "RiskCls"; // change if your column name differs
 
-    // Start near Benguet (just a start view; no lock yet)
+    // Benguet approx start view
     const START_RECT = Cesium.Rectangle.fromDegrees(120.05, 15.75, 121.65, 17.45);
 
-    // =========================
-    // TOKEN (PASTE YOUR NEW TOKEN HERE — DO NOT SHARE IT)
-    // =========================
+    // ===== TOKEN =====
     Cesium.Ion.defaultAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJmNDNkZTM0OS00YjJjLTQ1NGYtODY3OC04NGJkNTMyNTVjMzciLCJpZCI6MzU5OTE1LCJpYXQiOjE3NzA2MTk2NTR9.7AMr5xm4NqjOYC-WuCZv1OHw-JwpQsQaXCOl01SE0_0";
 
-    // =========================
-    // VIEWER (OSM basemap so it won't be black)
-    // =========================
+    // ===== VIEWER (OSM basemap) =====
     const viewer = new Cesium.Viewer("cesiumContainer", {
       imageryProvider: new Cesium.OpenStreetMapImageryProvider({
         url: "https://a.tile.openstreetmap.org/"
       }),
       baseLayerPicker: false,
-      terrainProvider: new Cesium.EllipsoidTerrainProvider(), // flat earth
+      terrainProvider: new Cesium.EllipsoidTerrainProvider(),
       animation: false,
       timeline: false,
       sceneModePicker: true,
@@ -81,11 +75,7 @@
       viewer.camera.flyTo({ destination: START_RECT });
     });
 
-    // =========================
-    // COLORS
-    // =========================
     function norm(v) { return (v ?? "").toString().trim().toLowerCase(); }
-
     function riskColor(levelRaw) {
       const level = norm(levelRaw);
       if (level === "severe")   return Cesium.Color.fromCssColorString("#1565c0"); // blue
@@ -94,66 +84,59 @@
       return Cesium.Color.fromCssColorString("#e0e0e0"); // none/unknown
     }
 
-    // =========================
-    // LOAD RISK LAYER
-    // =========================
     (async () => {
-      let ds;
       try {
-        ds = await Cesium.GeoJsonDataSource.load(
-          Cesium.IonResource.fromAssetId(RISK_ASSET_ID),
-          { clampToGround: true }
-        );
-      } catch (err) {
-        console.error("Failed loading risk asset:", err);
-        alert("Risk asset failed to load. Open Console (F12) and check errors.");
-        return;
-      }
+        // ✅ resolve correct endpoint first
+        const resource = await Cesium.IonResource.fromAssetId(RISK_ASSET_ID);
+        const ds = await Cesium.GeoJsonDataSource.load(resource, { clampToGround: true });
+        viewer.dataSources.add(ds);
 
-      viewer.dataSources.add(ds);
+        const entities = ds.entities.values;
+        const baseColors = new Map();
 
-      const entities = ds.entities.values;
-      const baseColors = new Map();
-
-      for (const e of entities) {
-        if (!e.polygon) continue;
-
-        const level = e.properties?.[RISK_FIELD]?.getValue?.() ?? "None";
-        const base = riskColor(level);
-        baseColors.set(e.id, base);
-
-        e.polygon.outline = true;
-        e.polygon.outlineColor = Cesium.Color.BLACK.withAlpha(0.35);
-
-        const name =
-          e.properties?.ADM4_EN?.getValue?.() ??
-          e.properties?.ADM3_EN?.getValue?.() ??
-          e.properties?.name?.getValue?.() ??
-          "Area";
-
-        e.description = `<b>${name}</b><br><b>Risk:</b> ${level}`;
-      }
-
-      // Slider
-      const slider = document.getElementById("riskSlider");
-      const valueLabel = document.getElementById("riskValue");
-
-      function applyOpacity(opacity) {
         for (const e of entities) {
           if (!e.polygon) continue;
-          e.polygon.material = baseColors.get(e.id).withAlpha(opacity);
+
+          const level = e.properties?.[RISK_FIELD]?.getValue?.() ?? "None";
+          const base = riskColor(level);
+          baseColors.set(e.id, base);
+
+          e.polygon.outline = true;
+          e.polygon.outlineColor = Cesium.Color.BLACK.withAlpha(0.35);
+
+          const name =
+            e.properties?.ADM4_EN?.getValue?.() ??
+            e.properties?.ADM3_EN?.getValue?.() ??
+            e.properties?.name?.getValue?.() ??
+            "Area";
+
+          e.description = `<b>${name}</b><br><b>Risk:</b> ${level}`;
         }
+
+        // Slider
+        const slider = document.getElementById("riskSlider");
+        const valueLabel = document.getElementById("riskValue");
+
+        function applyOpacity(opacity) {
+          for (const e of entities) {
+            if (!e.polygon) continue;
+            e.polygon.material = baseColors.get(e.id).withAlpha(opacity);
+          }
+        }
+
+        applyOpacity(Number(slider.value) / 100);
+
+        slider.addEventListener("input", () => {
+          const pct = Number(slider.value);
+          valueLabel.textContent = pct + "%";
+          applyOpacity(pct / 100);
+        });
+
+        await viewer.flyTo(ds);
+      } catch (err) {
+        console.error("LOAD ERROR:", err);
+        alert("Load failed. Press F12 → Console and copy the first red error line.");
       }
-
-      applyOpacity(Number(slider.value) / 100);
-
-      slider.addEventListener("input", () => {
-        const pct = Number(slider.value);
-        valueLabel.textContent = pct + "%";
-        applyOpacity(pct / 100);
-      });
-
-      await viewer.flyTo(ds);
     })();
   </script>
 </body>
