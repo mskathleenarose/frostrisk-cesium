@@ -43,7 +43,7 @@
       <span class="swatch" style="background:#e0e0e0"></span>None<br>
       <span class="swatch" style="background:#66bb6a"></span>Mild<br>
       <span class="swatch" style="background:#f9a825"></span>Moderate<br>
-      <span class="swatch" style="background:#1565c0"></span>High
+      <span class="swatch" style="background:#1565c0"></span>Severe
     </div>
   </div>
 
@@ -73,12 +73,12 @@
 
     // =========================
     // 3) COLOR MAPPING (Hazard_W)
-    // None / Mild / Moderate / High
+    // None / Mild / Moderate / Severe
     // =========================
     function riskColor(level) {
-      if (level === "High")      return Cesium.Color.fromCssColorString("#1565c0"); // blue
-      if (level === "Moderate")  return Cesium.Color.fromCssColorString("#f9a825"); // yellow
-      if (level === "Mild")      return Cesium.Color.fromCssColorString("#66bb6a"); // light green
+      if (level === "Severe")   return Cesium.Color.fromCssColorString("#1565c0"); // blue
+      if (level === "Moderate") return Cesium.Color.fromCssColorString("#f9a825"); // yellow
+      if (level === "Mild")     return Cesium.Color.fromCssColorString("#66bb6a"); // light green
       return Cesium.Color.fromCssColorString("#e0e0e0"); // None = gray
     }
 
@@ -99,7 +99,7 @@
       for (const e of entities) {
         if (!e.polygon) continue;
 
-        // ✅ Your field name
+        // ✅ Your risk field name
         const level = e.properties?.Hazard_W?.getValue?.() ?? "None";
         const base = riskColor(level);
         baseColors.set(e.id, base);
@@ -162,31 +162,31 @@
 
       const now = Cesium.JulianDate.now();
 
-      // Big rectangle covering Northern Luzon (so the "outside" area can be shaded)
-      const rect = Cesium.Rectangle.fromDegrees(114, 5, 130, 22);
-      const rectPositions = Cesium.RectangleGeometry.createGeometry(
-        new Cesium.RectangleGeometry({ rectangle: rect })
-      ).attributes.position.values;
+      // ✅ Clean rectangle polygon (not RectangleGeometry)
+      const west = 114, south = 5, east = 130, north = 22;
+      const rectPositions = Cesium.Cartesian3.fromDegreesArray([
+        west, south,
+        east, south,
+        east, north,
+        west, north
+      ]);
 
-      const rectCartesians = [];
-      for (let i = 0; i < rectPositions.length; i += 3) {
-        rectCartesians.push(new Cesium.Cartesian3(rectPositions[i], rectPositions[i+1], rectPositions[i+2]));
-      }
-
-      // Each municipality becomes a hole so Benguet area stays visible
+      // Each municipality polygon becomes a hole so Benguet stays visible
       const holes = polys.map(e => {
         const h = e.polygon.hierarchy.getValue(now);
         return new Cesium.PolygonHierarchy(h.positions);
       });
 
-      // Mask polygon: a big rectangle with holes where Benguet polygons are
+      // Mask polygon: big rectangle with holes = Benguet area visible
       viewer.entities.add({
         name: "Outside Benguet Mask",
         polygon: {
-          hierarchy: new Cesium.PolygonHierarchy(rectCartesians, holes),
+          hierarchy: new Cesium.PolygonHierarchy(rectPositions, holes),
           material: Cesium.Color.BLACK.withAlpha(0.78), // outside opacity strength
           outline: false,
-          classificationType: Cesium.ClassificationType.TERRAIN
+          perPositionHeight: false,
+          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+          classificationType: Cesium.ClassificationType.BOTH
         }
       });
 
@@ -203,7 +203,7 @@
     (async () => {
       const riskDS = await loadRiskLayer();
       await addBenguetMask();
-      viewer.zoomTo(riskDS);
+      viewer.flyTo(riskDS);
     })();
   </script>
 </body>
