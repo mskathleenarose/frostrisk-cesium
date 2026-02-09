@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>FrostPH Risk Map</title>
+
+  <!-- CesiumJS -->
+  <script src="https://cesium.com/downloads/cesiumjs/releases/1.116/Build/Cesium/Cesium.js"></script>
+  <link href="https://cesium.com/downloads/cesiumjs/releases/1.116/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+
+  <style>
+    html, body, #cesiumContainer {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    .panel {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      z-index: 999;
+      background: rgba(255,255,255,0.95);
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+      min-width: 220px;
+    }
+    .row { margin-top: 8px; }
+    input[type="range"] { width: 180px; }
+  </style>
+</head>
+
+<body>
+  <div id="cesiumContainer"></div>
+
+  <!-- Slider UI -->
+  <div class="panel">
+    <b>FrostPH Risk Overlay</b>
+    <div class="row">
+      <input id="riskSlider" type="range" min="0" max="100" value="80">
+      <div>Opacity: <span id="riskValue">80%</span></div>
+    </div>
+  </div>
+
+  <script>
+    // ✅ 1) Paste your Cesium ion token here
+    Cesium.Ion.defaultAccessToken = "PASTE_YOUR_TOKEN_HERE";
+
+    // ✅ 2) Create the viewer
+    const viewer = new Cesium.Viewer("cesiumContainer", {
+      terrain: Cesium.Terrain.fromWorldTerrain(),
+      animation: false,
+      timeline: false,
+      sceneModePicker: true,
+      baseLayerPicker: true
+    });
+
+    // Optional: start near Benguet
+    viewer.camera.flyTo({
+      destination: Cesium.Cartesian3.fromDegrees(120.7, 16.6, 120000)
+    });
+
+    // ✅ Risk color function
+    function riskColor(level) {
+      if (level === "Very High") return Cesium.Color.fromCssColorString("#6a1b9a");
+      if (level === "High")      return Cesium.Color.fromCssColorString("#1565c0");
+      if (level === "Moderate")  return Cesium.Color.fromCssColorString("#f9a825");
+      return Cesium.Color.fromCssColorString("#2e7d32");
+    }
+
+    (async () => {
+      // ✅ 3) Load your GeoJSON from Cesium ion (Asset ID 4430740)
+      const riskDataSource = await Cesium.GeoJsonDataSource.load(
+        Cesium.IonResource.fromAssetId(4430740),
+        { clampToGround: true }
+      );
+
+      viewer.dataSources.add(riskDataSource);
+      viewer.zoomTo(riskDataSource);
+
+      const entities = riskDataSource.entities.values;
+      const baseColors = new Map();
+
+      // ✅ 4) Style polygons + popup
+      for (const e of entities) {
+        if (!e.polygon) continue;
+
+        // 🔧 IMPORTANT: change "risk_level" if your field name differs
+        const level = e.properties?.risk_level?.getValue?.() ?? "Low";
+        const base = riskColor(level);
+        baseColors.set(e.id, base);
+
+        e.polygon.outline = true;
+        e.polygon.outlineColor = Cesium.Color.WHITE.withAlpha(0.7);
+
+        // Name field fallback
+        const name =
+          e.properties?.ADM3_EN_
