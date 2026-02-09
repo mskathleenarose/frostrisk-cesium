@@ -79,7 +79,6 @@
     const BOUNDARY_ASSET_ID = 4076193;     // Benguet Municipality (GeoJSON)
     const RISK_FIELD = "RiskCls";          // risk column
 
-    // Start view (Benguet approx)
     const START = {
       destination: Cesium.Cartesian3.fromDegrees(120.7, 16.6, 65000),
       orientation: {
@@ -108,21 +107,12 @@
     });
 
     viewer.scene.mode = Cesium.SceneMode.SCENE3D;
-
-    // Better surface drape look
     viewer.scene.globe.depthTestAgainstTerrain = true;
-
-    // Lighting & shadows
     viewer.scene.globe.enableLighting = true;
     viewer.shadows = true;
-
-    // Terrain exaggeration default
     viewer.scene.globe.terrainExaggeration = 1.6;
-
-    // Start camera
     viewer.camera.setView(START);
 
-    // Home button returns to Benguet
     viewer.homeButton.viewModel.command.beforeExecute.addEventListener((e) => {
       e.cancel = true;
       viewer.camera.flyTo(START);
@@ -184,20 +174,18 @@
     }
 
     // =========================
-    // LOAD BOUNDARY (outline only, clamped)
+    // LOAD BOUNDARY (retain your nice municipal boundary)
     // =========================
     async function loadBoundary(){
       const resource = await Cesium.IonResource.fromAssetId(BOUNDARY_ASSET_ID);
       const ds = await Cesium.GeoJsonDataSource.load(resource, { clampToGround: true });
       viewer.dataSources.add(ds);
 
-      // Draw polygon outlines as clamped polylines (more reliable)
       const now = Cesium.JulianDate.now();
 
       for (const e of ds.entities.values){
         if (!e.polygon) continue;
 
-        // Hide polygon fill
         e.polygon.material = Cesium.Color.TRANSPARENT;
         e.polygon.outline = false;
 
@@ -212,13 +200,17 @@
             material: Cesium.Color.WHITE.withAlpha(0.85)
           }
         });
+
+        // IMPORTANT: remove the clickable popup for boundary polygons (prevents UUID popups)
+        e.name = "";
+        e.description = "";
       }
 
       return ds;
     }
 
     // =========================
-    // LOAD RISK LAYER (draped on terrain + better popup)
+    // LOAD RISK LAYER (RiskCls + better popup + NO UUID)
     // =========================
     async function loadRisk(){
       const resource = await Cesium.IonResource.fromAssetId(RISK_ASSET_ID);
@@ -230,8 +222,12 @@
       for (const e of ds.entities.values){
         if (!e.polygon) continue;
 
-        const level = e.properties?.[RISK_FIELD]?.getValue?.(now) ?? "None";
-        e._baseRiskColor = baseRiskColor(level);
+        // Read RiskCls properly
+        const riskCls = e.properties?.[RISK_FIELD]?.getValue?.(now) ??
+                        e.properties?.[RISK_FIELD]?.getValue?.() ??
+                        "None";
+
+        e._baseRiskColor = baseRiskColor(riskCls);
 
         // Drape polygons on terrain
         e.polygon.height = 0;
@@ -241,14 +237,14 @@
 
         e.polygon.outline = false;
 
-        // Fields: ADM4_EN = barangay, ADM3_EN = municipality
+        // ADM4_EN = barangay, ADM3_EN = municipality
         const barangay = e.properties?.ADM4_EN?.getValue?.(now) ?? "Unknown barangay";
         const municipality = e.properties?.ADM3_EN?.getValue?.(now) ?? "Unknown municipality";
 
-        // Popup title (removes UUID)
+        // ✅ Popup title (NOT UUID)
         e.name = `${barangay}, ${municipality}`;
 
-        // Popup body
+        // ✅ Popup body includes RiskCls value
         e.description = `
           <div style="font-family:Arial,sans-serif; font-size:13px; line-height:1.45; padding:2px 0;">
             <div style="font-size:16px; font-weight:900; margin:2px 0 2px;">
@@ -262,10 +258,13 @@
                         padding:10px; border:1px solid #e8e8e8; border-radius:12px; background:#fafafa;">
               <div>
                 <div style="font-size:11.5px; color:#666; font-weight:800; letter-spacing:.2px;">
-                  FROST RISK CLASS
+                  RISKCLS
                 </div>
                 <div style="margin-top:6px;">
-                  ${riskBadge(level)}
+                  ${riskBadge(riskCls)}
+                  <div style="margin-top:6px; font-size:12px; color:#666;">
+                    Value: <b>${escapeHtml(riskCls)}</b>
+                  </div>
                 </div>
               </div>
 
@@ -281,7 +280,7 @@
 
             <div style="margin-top:10px; padding-top:8px; border-top:1px solid #eee;
                         font-size:12px; color:#666;">
-              Tip: adjust opacity to compare terrain vs. risk overlay.
+              Tip: click another barangay to compare risk.
             </div>
           </div>
         `;
@@ -291,7 +290,7 @@
     }
 
     // =========================
-    // UI WIRING
+    // UI
     // =========================
     function wireUI(riskDS){
       const slider = document.getElementById("riskSlider");
