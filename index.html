@@ -4,7 +4,6 @@
   <meta charset="utf-8" />
   <title>FrostPH Risk Map (Benguet)</title>
 
-  <!-- CesiumJS -->
   <script src="https://cesium.com/downloads/cesiumjs/releases/1.116/Build/Cesium/Cesium.js"></script>
   <link href="https://cesium.com/downloads/cesiumjs/releases/1.116/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
 
@@ -41,7 +40,7 @@
     <div class="legend">
       <b>Legend</b><br>
       <span class="swatch" style="background:#e0e0e0"></span>None<br>
-      <span class="swatch" style="background:#66bb6a"></span>Mild<br>
+      <span class="swatch" style="background:#2e7d32"></span>Mild<br>
       <span class="swatch" style="background:#f9a825"></span>Moderate<br>
       <span class="swatch" style="background:#1565c0"></span>Severe
     </div>
@@ -49,42 +48,88 @@
 
   <script>
     // =========================
-    // 1) CESIUM ION TOKEN
+    // 1) TOKEN
     // =========================
     Cesium.Ion.defaultAccessToken = "PASTE_YOUR_TOKEN_HERE";
 
     // =========================
-    // 2) CREATE VIEWER
+    // 2) VIEWER
     // =========================
     const viewer = new Cesium.Viewer("cesiumContainer", {
       terrain: Cesium.Terrain.fromWorldTerrain(),
       animation: false,
       timeline: false,
       baseLayerPicker: true,
-      sceneModePicker: true,
-      geocoder: true,
-      homeButton: true
+      sceneModePicker: true
     });
 
-    // Start near Benguet
-    viewer.camera.flyTo({
-      destination: Cesium.Cartesian3.fromDegrees(120.7, 16.6, 120000)
-    });
+    // Optional: remove star background so "black" is less confusing
+    viewer.scene.skyBox.show = false;
+    viewer.scene.backgroundColor = Cesium.Color.BLACK;
 
     // =========================
-    // 3) COLOR MAPPING (Hazard_W)
-    // None / Mild / Moderate / Severe
+    // 3) COLORS (None/Mild/Moderate/Severe)
     // =========================
     function riskColor(level) {
       if (level === "Severe")   return Cesium.Color.fromCssColorString("#1565c0"); // blue
       if (level === "Moderate") return Cesium.Color.fromCssColorString("#f9a825"); // yellow
-      if (level === "Mild")     return Cesium.Color.fromCssColorString("#66bb6a"); // light green
+      if (level === "Mild")     return Cesium.Color.fromCssColorString("#2e7d32"); // green
       return Cesium.Color.fromCssColorString("#e0e0e0"); // None = gray
     }
 
     // =========================
-    // 4) LOAD RISK LAYER
-    // Asset ID: 4430889
+    // 4) DARK OUTSIDE OVERLAY (simple rectangle)
+    // =========================
+    function addDarkOutsideOverlay() {
+      // Big rectangle over Northern Luzon area
+      const west = 114, south = 5, east = 130, north = 22;
+      const rectPositions = Cesium.Cartesian3.fromDegreesArray([
+        west, south,
+        east, south,
+        east, north,
+        west, north
+      ]);
+
+      // Add as a normal polygon overlay (not holes)
+      // We'll "remove" it inside Benguet by drawing Benguet polygons ABOVE it with transparent fill
+      return viewer.entities.add({
+        name: "Dark Outside Overlay",
+        polygon: {
+          hierarchy: rectPositions,
+          material: Cesium.Color.BLACK.withAlpha(0.78),
+          outline: false,
+          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
+        }
+      });
+    }
+
+    // =========================
+    // 5) LOAD BENGUET MUNICIPALITIES (4076193)
+    // and "clear" the dark overlay inside Benguet
+    // =========================
+    async function loadBenguetBoundaryAndClearOverlay() {
+      const boundaryDS = await Cesium.GeoJsonDataSource.load(
+        Cesium.IonResource.fromAssetId(4076193),
+        { clampToGround: true }
+      );
+      viewer.dataSources.add(boundaryDS);
+
+      // Style the boundary and make it effectively "clear" by using near-zero alpha
+      // IMPORTANT: this draws ABOVE the dark rectangle and visually reveals Benguet
+      for (const e of boundaryDS.entities.values) {
+        if (e.polygon) {
+          e.polygon.material = Cesium.Color.WHITE.withAlpha(0.001); // almost transparent but still drawn
+          e.polygon.outline = true;
+          e.polygon.outlineColor = Cesium.Color.WHITE.withAlpha(0.9);
+        }
+        if (e.polyline) e.polyline.show = false;
+      }
+
+      return boundaryDS;
+    }
+
+    // =========================
+    // 6) LOAD RISK LAYER (4430889)
     // =========================
     async function loadRiskLayer() {
       const ds = await Cesium.GeoJsonDataSource.load(
@@ -99,7 +144,6 @@
       for (const e of entities) {
         if (!e.polygon) continue;
 
-        // ✅ Your risk field name
         const level = e.properties?.Hazard_W?.getValue?.() ?? "None";
         const base = riskColor(level);
         baseColors.set(e.id, base);
@@ -113,13 +157,10 @@
           e.properties?.name?.getValue?.() ??
           "Area";
 
-        e.description = `
-          <b>${name}</b><br>
-          <b>Hazard:</b> ${level}
-        `;
+        e.description = `<b>${name}</b><br><b>Hazard:</b> ${level}`;
       }
 
-      // Slider controls opacity (0 = off, 1 = on)
+      // Slider
       const slider = document.getElementById("riskSlider");
       const valueLabel = document.getElementById("riskValue");
 
@@ -142,68 +183,21 @@
     }
 
     // =========================
-    // 5) MASK OUTSIDE BENGUET
-    // Municipality boundary asset: 4076193
-    // =========================
-    async function addBenguetMask() {
-      const boundaryDS = await Cesium.GeoJsonDataSource.load(
-        Cesium.IonResource.fromAssetId(4076193),
-        { clampToGround: true }
-      );
-      viewer.dataSources.add(boundaryDS);
-
-      // Collect all municipality polygons (in case the file contains multiple features)
-      const polys = boundaryDS.entities.values.filter(e => e.polygon && e.polygon.hierarchy);
-
-      if (!polys.length) {
-        console.error("No polygon found in Benguet Municipality asset 4076193.");
-        return;
-      }
-
-      const now = Cesium.JulianDate.now();
-
-      // ✅ Clean rectangle polygon (not RectangleGeometry)
-      const west = 114, south = 5, east = 130, north = 22;
-      const rectPositions = Cesium.Cartesian3.fromDegreesArray([
-        west, south,
-        east, south,
-        east, north,
-        west, north
-      ]);
-
-      // Each municipality polygon becomes a hole so Benguet stays visible
-      const holes = polys.map(e => {
-        const h = e.polygon.hierarchy.getValue(now);
-        return new Cesium.PolygonHierarchy(h.positions);
-      });
-
-      // Mask polygon: big rectangle with holes = Benguet area visible
-      viewer.entities.add({
-        name: "Outside Benguet Mask",
-        polygon: {
-          hierarchy: new Cesium.PolygonHierarchy(rectPositions, holes),
-          material: Cesium.Color.BLACK.withAlpha(0.78), // outside opacity strength
-          outline: false,
-          perPositionHeight: false,
-          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-          classificationType: Cesium.ClassificationType.BOTH
-        }
-      });
-
-      // Hide boundary visuals; keep only mask effect
-      for (const e of boundaryDS.entities.values) {
-        if (e.polygon) e.polygon.material = Cesium.Color.TRANSPARENT;
-        if (e.polyline) e.polyline.show = false;
-      }
-    }
-
-    // =========================
-    // 6) RUN
+    // 7) RUN IN ORDER
     // =========================
     (async () => {
+      // Put the dark overlay first
+      addDarkOutsideOverlay();
+
+      // Load boundary (draws above overlay, revealing Benguet area)
+      const boundaryDS = await loadBenguetBoundaryAndClearOverlay();
+
+      // Load risk above everything
       const riskDS = await loadRiskLayer();
-      await addBenguetMask();
-      viewer.flyTo(riskDS);
+
+      // Zoom to Benguet boundary first, then risk
+      await viewer.flyTo(boundaryDS);
+      await viewer.flyTo(riskDS);
     })();
   </script>
 </body>
