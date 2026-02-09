@@ -1,160 +1,31 @@
-<script>
-  // =========================
-  // 1. CESIUM TOKEN
-  // =========================
-  Cesium.Ion.defaultAccessToken = "4430740";
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Cesium Test</title>
 
-  // =========================
-  // 2. VIEWER
-  // =========================
-  const viewer = new Cesium.Viewer("cesiumContainer", {
-    terrain: Cesium.Terrain.fromWorldTerrain(),
-    animation: false,
-    timeline: false,
-    baseLayerPicker: true,
-    sceneModePicker: true
-  });
+  <script src="https://cesium.com/downloads/cesiumjs/releases/1.116/Build/Cesium/Cesium.js"></script>
+  <link href="https://cesium.com/downloads/cesiumjs/releases/1.116/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
 
-  viewer.camera.flyTo({
-    destination: Cesium.Cartesian3.fromDegrees(120.7, 16.6, 120000)
-  });
-
-  // =========================
-  // 3. RISK COLOR FUNCTION
-  // =========================
-  function riskColor(level) {
-    if (level === "Very High") return Cesium.Color.fromCssColorString("#6a1b9a");
-    if (level === "High")      return Cesium.Color.fromCssColorString("#1565c0");
-    if (level === "Moderate")  return Cesium.Color.fromCssColorString("#f9a825");
-    return Cesium.Color.fromCssColorString("#2e7d32");
-  }
-
-  // =========================
-  // 4. LOAD RISK LAYER (4430740)
-  // =========================
-  async function loadRiskLayer() {
-    const ds = await Cesium.GeoJsonDataSource.load(
-      Cesium.IonResource.fromAssetId(4430740),
-      { clampToGround: true }
-    );
-    viewer.dataSources.add(ds);
-
-    const entities = ds.entities.values;
-    const baseColors = new Map();
-
-    for (const e of entities) {
-      if (!e.polygon) continue;
-
-      // 🔧 Change field name if needed
-      const level = e.properties?.risk_level?.getValue?.() ?? "Low";
-      const base = riskColor(level);
-      baseColors.set(e.id, base);
-
-      e.polygon.outline = true;
-      e.polygon.outlineColor = Cesium.Color.WHITE.withAlpha(0.6);
-
-      const name =
-        e.properties?.ADM3_EN?.getValue?.() ??
-        e.properties?.ADM2_EN?.getValue?.() ??
-        e.properties?.name?.getValue?.() ??
-        "Area";
-
-      e.description = `
-        <b>${name}</b><br>
-        <b>Frost Risk:</b> ${level}
-      `;
+  <style>
+    html, body, #cesiumContainer {
+      width:100%;
+      height:100%;
+      margin:0;
+      padding:0;
     }
+  </style>
+</head>
 
-    // Slider logic
-    const slider = document.getElementById("riskSlider");
-    const valueLabel = document.getElementById("riskValue");
+<body>
+  <div id="cesiumContainer"></div>
 
-    function applyOpacity(opacity) {
-      for (const e of entities) {
-        if (!e.polygon) continue;
-        e.polygon.material = baseColors.get(e.id).withAlpha(opacity);
-      }
-    }
+  <script>
+    Cesium.Ion.defaultAccessToken = "PASTE_YOUR_TOKEN_HERE";
 
-    applyOpacity(Number(slider.value) / 100);
-
-    slider.addEventListener("input", () => {
-      const pct = Number(slider.value);
-      valueLabel.textContent = pct + "%";
-      applyOpacity(pct / 100);
+    const viewer = new Cesium.Viewer("cesiumContainer", {
+      terrain: Cesium.Terrain.fromWorldTerrain()
     });
-
-    return ds;
-  }
-
-  // =========================
-  // 5. BENGUET MASK (4076193)
-  // =========================
-  async function addBenguetMask() {
-    const boundaryDS = await Cesium.GeoJsonDataSource.load(
-      Cesium.IonResource.fromAssetId(4076193),
-      { clampToGround: true }
-    );
-    viewer.dataSources.add(boundaryDS);
-
-    // Use first polygon (municipality boundary union)
-    const polyEntity = boundaryDS.entities.values.find(
-      e => e.polygon && e.polygon.hierarchy
-    );
-
-    if (!polyEntity) {
-      console.error("No polygon found in municipality boundary asset.");
-      return;
-    }
-
-    const hierarchy = polyEntity.polygon.hierarchy.getValue(
-      Cesium.JulianDate.now()
-    );
-
-    // Big rectangle covering Luzon
-    const rect = Cesium.Rectangle.fromDegrees(114, 5, 130, 22);
-    const rectPositions = Cesium.RectangleGeometry.createGeometry(
-      new Cesium.RectangleGeometry({ rectangle: rect })
-    ).attributes.position.values;
-
-    const rectCartesians = [];
-    for (let i = 0; i < rectPositions.length; i += 3) {
-      rectCartesians.push(
-        new Cesium.Cartesian3(
-          rectPositions[i],
-          rectPositions[i + 1],
-          rectPositions[i + 2]
-        )
-      );
-    }
-
-    // Mask polygon
-    viewer.entities.add({
-      name: "Outside Benguet Mask",
-      polygon: {
-        hierarchy: new Cesium.PolygonHierarchy(
-          rectCartesians,
-          [new Cesium.PolygonHierarchy(hierarchy.positions)]
-        ),
-        material: Cesium.Color.BLACK.withAlpha(0.75),
-        outline: false,
-        classificationType: Cesium.ClassificationType.TERRAIN
-      }
-    });
-
-    // Hide boundary visuals (keep only mask effect)
-    for (const e of boundaryDS.entities.values) {
-      if (e.polygon) e.polygon.material = Cesium.Color.TRANSPARENT;
-      if (e.polyline) e.polyline.show = false;
-    }
-  }
-
-  // =========================
-  // 6. RUN EVERYTHING
-  // =========================
-  (async () => {
-    const riskDS = await loadRiskLayer();
-    await addBenguetMask();
-    viewer.zoomTo(riskDS);
-  })();
-</script>
+  </script>
+</body>
+</html>
