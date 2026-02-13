@@ -1,50 +1,90 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>FrostPH 3D Risk Map (GeoJSON)</title>
+<meta charset="utf-8" />
+<title>FrostPH 3D Risk Map</title>
 
-  <script src="https://cesium.com/downloads/cesiumjs/releases/1.116/Build/Cesium/Cesium.js"></script>
-  <link href="https://cesium.com/downloads/cesiumjs/releases/1.116/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+<script src="https://cesium.com/downloads/cesiumjs/releases/1.116/Build/Cesium/Cesium.js"></script>
+<link href="https://cesium.com/downloads/cesiumjs/releases/1.116/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
 
-  <style>
-    html, body, #cesiumContainer { width:100%; height:100%; margin:0; padding:0; overflow:hidden; }
+<style>
+html, body, #cesiumContainer {
+  width:100%; height:100%;
+  margin:0; padding:0;
+  overflow:hidden;
+}
 
-    .panel{
-      position:absolute; top:12px; left:12px; z-index:999;
-      background:rgba(255,255,255,0.95); padding:10px 12px; border-radius:10px;
-      font-family:Arial,sans-serif; font-size:13px; box-shadow:0 4px 14px rgba(0,0,0,0.25);
-      min-width:290px;
-    }
-    .row{ margin-top:10px; }
-    input[type="range"]{ width:240px; }
-    .legend{ margin-top:10px; line-height:1.6; }
-    .swatch{ display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:6px; vertical-align:middle; }
-    .small{ color:#444; font-size:12px; }
+/* ================= PANEL ================= */
+.panel{
+  position:absolute;
+  top:12px;
+  left:12px;
+  z-index:999;
+  background:rgba(255,255,255,0.96);
+  padding:12px;
+  border-radius:12px;
+  font-family:Arial,sans-serif;
+  font-size:13px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.25);
+  min-width:290px;
+  transition:all 0.25s ease;
+}
 
-    /* Nicer Cesium popup */
-    .cesium-infoBox {
-      border-radius: 14px !important;
-      box-shadow: 0 10px 26px rgba(0,0,0,0.28) !important;
-      overflow: hidden !important;
-    }
-    .cesium-infoBox-title {
-      font-family: Arial, sans-serif !important;
-      font-weight: 900 !important;
-      font-size: 14px !important;
-    }
-    .cesium-infoBox-description {
-      font-family: Arial, sans-serif !important;
-    }
-  </style>
+.panel.collapsed #panelContent{
+  display:none;
+}
+
+.row{ margin-top:10px; }
+input[type="range"]{ width:240px; }
+.legend{ margin-top:10px; line-height:1.6; }
+.swatch{
+  display:inline-block;
+  width:12px;
+  height:12px;
+  border-radius:3px;
+  margin-right:6px;
+  vertical-align:middle;
+}
+.small{ color:#444; font-size:12px; }
+
+/* ================= POPUP ================= */
+.cesium-infoBox{
+  border-radius:14px !important;
+  box-shadow:0 10px 26px rgba(0,0,0,0.28) !important;
+}
+.cesium-infoBox-title{
+  font-weight:900 !important;
+  font-size:14px !important;
+}
+</style>
 </head>
 
 <body>
-  <div id="cesiumContainer"></div>
 
-  <div class="panel">
-    <b>FrostPH Risk Map (3D)</b><br>
-    <span class="small">GeoJSON overlay • 3D terrain</span>
+<div id="cesiumContainer"></div>
+
+<!-- ================= CONTROL PANEL ================= -->
+<div class="panel" id="controlPanel">
+
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <div>
+      <b>FrostPH Risk Map (3D)</b><br>
+      <span class="small">GeoJSON overlay • 3D terrain</span>
+    </div>
+    <button id="toggleBtn" style="
+      border:none;
+      background:#0b4a8b;
+      color:white;
+      padding:6px 10px;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:700;
+      font-size:12px;">
+      Hide
+    </button>
+  </div>
+
+  <div id="panelContent">
 
     <div class="row">
       <b>Risk overlay opacity</b><br>
@@ -67,299 +107,192 @@
     </div>
 
     <div class="small" style="margin-top:10px;">
-      Controls: drag to rotate • right-drag/Ctrl-drag to pan • scroll to zoom • tilt in 3D
+      Drag to rotate • Right-drag to pan • Scroll to zoom • Tilt in 3D
     </div>
+
   </div>
+</div>
 
-  <script>
-    // =========================
-    // CONFIG
-    // =========================
-    const RISK_ASSET_ID = 4431024;         // FrostRiskPrelim (GeoJSON)
-    const BOUNDARY_ASSET_ID = 4076193;     // Benguet Municipality (GeoJSON)
-    const RISK_FIELD = "RiskCls";          // risk column
+<script>
 
-    const START = {
-      destination: Cesium.Cartesian3.fromDegrees(120.7, 16.6, 65000),
-      orientation: {
-        heading: Cesium.Math.toRadians(20),
-        pitch: Cesium.Math.toRadians(-45),
-        roll: 0
+// ================= CONFIG =================
+const RISK_ASSET_ID = 4431024;
+const BOUNDARY_ASSET_ID = 4076193;
+const RISK_FIELD = "RiskCls";
+
+Cesium.Ion.defaultAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1NjIyMmEzMy01NmJkLTQwYTQtYjM5MS02NTA4ZmNjMGI1MTAiLCJpZCI6MzU5OTE1LCJpYXQiOjE3NjMwMDg3NTl9.BD0gTbvODVhDqjfV-i31W0UitaC2WHbdA33zsJuzSzg";
+
+// ================= VIEWER =================
+const viewer = new Cesium.Viewer("cesiumContainer",{
+  terrain: Cesium.Terrain.fromWorldTerrain(),
+  animation:false,
+  timeline:false,
+  baseLayerPicker:true,
+  sceneModePicker:true,
+  geocoder:true,
+  homeButton:true
+});
+
+viewer.scene.mode = Cesium.SceneMode.SCENE3D;
+viewer.scene.globe.depthTestAgainstTerrain = false;
+viewer.scene.globe.enableLighting = true;
+viewer.shadows = true;
+viewer.scene.globe.terrainExaggeration = 1.6;
+
+viewer.camera.setView({
+  destination: Cesium.Cartesian3.fromDegrees(120.7,16.6,65000),
+  orientation:{
+    heading:Cesium.Math.toRadians(20),
+    pitch:Cesium.Math.toRadians(-45),
+    roll:0
+  }
+});
+
+// ================= HELPERS =================
+function escapeHtml(s){
+  return String(s ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;");
+}
+
+function riskColor(v){
+  const raw=(v??"").toString().trim().toLowerCase();
+  if(raw==="3"||raw==="severe") return "#1565c0";
+  if(raw==="2"||raw==="moderate") return "#f9a825";
+  if(raw==="1"||raw==="mild") return "#2e7d32";
+  return "#e0e0e0";
+}
+
+function riskLabel(v){
+  const raw=(v??"").toString().trim();
+  if(raw==="3") return "Severe";
+  if(raw==="2") return "Moderate";
+  if(raw==="1") return "Mild";
+  return raw || "None";
+}
+
+// ================= LOAD BOUNDARY =================
+async function loadBoundary(){
+  const res=await Cesium.IonResource.fromAssetId(BOUNDARY_ASSET_ID);
+  const ds=await Cesium.GeoJsonDataSource.load(res,{clampToGround:true});
+  viewer.dataSources.add(ds);
+
+  const now=Cesium.JulianDate.now();
+
+  for(const e of ds.entities.values){
+    if(!e.polygon) continue;
+    e.polygon.material=Cesium.Color.TRANSPARENT;
+    e.polygon.outline=false;
+
+    const h=e.polygon.hierarchy.getValue(now);
+    if(!h?.positions) continue;
+
+    viewer.entities.add({
+      polyline:{
+        positions:h.positions,
+        clampToGround:true,
+        width:2,
+        material:Cesium.Color.WHITE.withAlpha(0.85)
       }
-    };
-
-    // =========================
-    // TOKEN
-    // =========================
-    Cesium.Ion.defaultAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJmNDNkZTM0OS00YjJjLTQ1NGYtODY3OC04NGJkNTMyNTVjMzciLCJpZCI6MzU5OTE1LCJpYXQiOjE3NzA2MTk2NTR9.7AMr5xm4NqjOYC-WuCZv1OHw-JwpQsQaXCOl01SE0_0";
-
-    // =========================
-    // VIEWER
-    // =========================
-    const viewer = new Cesium.Viewer("cesiumContainer", {
-      terrain: Cesium.Terrain.fromWorldTerrain(),
-      animation: false,
-      timeline: false,
-      baseLayerPicker: true,
-      sceneModePicker: true,
-      geocoder: true,
-      homeButton: true
     });
 
-    viewer.scene.mode = Cesium.SceneMode.SCENE3D;
+    e.name="";
+    e.description="";
+  }
+}
 
-    // IMPORTANT: keep overlays visible (prevents terrain from hiding translucent ground polys)
-    viewer.scene.globe.depthTestAgainstTerrain = false;
+// ================= LOAD RISK =================
+async function loadRisk(){
+  const res=await Cesium.IonResource.fromAssetId(RISK_ASSET_ID);
+  const ds=await Cesium.GeoJsonDataSource.load(res,{clampToGround:true});
+  viewer.dataSources.add(ds);
 
-    viewer.scene.globe.enableLighting = true;
-    viewer.shadows = true;
-    viewer.scene.globe.terrainExaggeration = 1.6;
-    viewer.camera.setView(START);
+  const now=Cesium.JulianDate.now();
 
-    viewer.homeButton.viewModel.command.beforeExecute.addEventListener((e) => {
-      e.cancel = true;
-      viewer.camera.flyTo(START);
-    });
+  for(const e of ds.entities.values){
+    if(!e.polygon) continue;
 
-    // =========================
-    // HELPERS
-    // =========================
-    function norm(v){ return (v ?? "").toString().trim().toLowerCase(); }
+    const risk=e.properties?.[RISK_FIELD]?.getValue?.(now) ?? "None";
+    const color=Cesium.Color.fromCssColorString(riskColor(risk));
 
-    // Handles BOTH text classes (mild/moderate/severe) and numeric (1/2/3)
-    function baseRiskColor(levelRaw){
-      const raw = (levelRaw ?? "").toString().trim();
-      const level = raw.toLowerCase();
+    e._baseColor=color;
 
-      // numeric support
-      if (raw === "3") return Cesium.Color.fromCssColorString("#1565c0"); // Severe
-      if (raw === "2") return Cesium.Color.fromCssColorString("#f9a825"); // Moderate
-      if (raw === "1") return Cesium.Color.fromCssColorString("#2e7d32"); // Mild
+    e.polygon.height=undefined;
+    e.polygon.extrudedHeight=undefined;
+    e.polygon.perPositionHeight=false;
+    e.polygon.material=new Cesium.ColorMaterialProperty(color.withAlpha(0.65));
+    e.polygon.outline=false;
 
-      // text support
-      if (level === "severe")   return Cesium.Color.fromCssColorString("#1565c0");
-      if (level === "moderate") return Cesium.Color.fromCssColorString("#f9a825");
-      if (level === "mild")     return Cesium.Color.fromCssColorString("#2e7d32");
+    const barangay=e.properties?.ADM4_EN?.getValue?.(now) ?? "Unknown barangay";
+    const muni=e.properties?.ADM3_EN?.getValue?.(now) ?? "Unknown municipality";
 
-      return Cesium.Color.fromCssColorString("#e0e0e0");
-    }
+    e.name=`${barangay}, ${muni}`;
 
-    function escapeHtml(s){
-      return String(s ?? "")
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
-    }
-
-    function titleCase(s){
-      const t = String(s ?? "").trim();
-      if (!t) return "None";
-      return t.charAt(0).toUpperCase() + t.slice(1);
-    }
-
-    function riskLabel(levelRaw){
-      const raw = (levelRaw ?? "").toString().trim();
-      if (raw === "3") return "Severe";
-      if (raw === "2") return "Moderate";
-      if (raw === "1") return "Mild";
-      return titleCase(raw || "None");
-    }
-
-    function riskBadge(levelRaw){
-      const levelNorm = norm(levelRaw);
-      const label = riskLabel(levelRaw);
-
-      const bg =
-        (levelRaw === "3" || levelNorm === "severe")   ? "#1565c0" :
-        (levelRaw === "2" || levelNorm === "moderate") ? "#f9a825" :
-        (levelRaw === "1" || levelNorm === "mild")     ? "#2e7d32" : "#e0e0e0";
-
-      const fg = (bg === "#f9a825" || bg === "#e0e0e0") ? "#111" : "#fff";
-
-      return `<span style="
-        display:inline-flex; align-items:center; gap:6px;
-        padding:4px 10px; border-radius:999px;
-        background:${bg}; color:${fg};
-        font-weight:900; font-size:12px;
-        letter-spacing:.2px;
-      ">
-        <span style="
-          width:8px; height:8px; border-radius:50%;
-          background:${fg}; opacity:.85;
-          display:inline-block;
-        "></span>
-        ${escapeHtml(label)}
-      </span>`;
-    }
-
-    // =========================
-    // LOAD BOUNDARY (municipal outline as clamped polylines)
-    // =========================
-    async function loadBoundary(){
-      const resource = await Cesium.IonResource.fromAssetId(BOUNDARY_ASSET_ID);
-      const ds = await Cesium.GeoJsonDataSource.load(resource, { clampToGround: true });
-      viewer.dataSources.add(ds);
-
-      const now = Cesium.JulianDate.now();
-
-      for (const e of ds.entities.values){
-        if (!e.polygon) continue;
-
-        // Hide polygon fill; we only want the boundary line
-        e.polygon.material = Cesium.Color.TRANSPARENT;
-        e.polygon.outline = false;
-
-        const hierarchy = e.polygon.hierarchy.getValue(now);
-        if (!hierarchy || !hierarchy.positions || hierarchy.positions.length < 2) continue;
-
-        viewer.entities.add({
-          polyline: {
-            positions: hierarchy.positions,
-            clampToGround: true,
-            width: 2,
-            material: Cesium.Color.WHITE.withAlpha(0.85)
-          }
-        });
-
-        // Prevent boundary polygons from producing UUID popups
-        e.name = "";
-        e.description = "";
-      }
-
-      return ds;
-    }
-
-    // =========================
-    // LOAD RISK LAYER (fills visible + nice popup + no UUID)
-    // =========================
-    async function loadRisk(){
-      const resource = await Cesium.IonResource.fromAssetId(RISK_ASSET_ID);
-      const ds = await Cesium.GeoJsonDataSource.load(resource, { clampToGround: true });
-      viewer.dataSources.add(ds);
-
-      const now = Cesium.JulianDate.now();
-
-      for (const e of ds.entities.values){
-        if (!e.polygon) continue;
-
-        // Get RiskCls
-        const riskCls =
-          e.properties?.[RISK_FIELD]?.getValue?.(now) ??
-          e.properties?.[RISK_FIELD]?.getValue?.() ??
-          "None";
-
-        // Store base color for slider
-        e._baseRiskColor = baseRiskColor(riskCls);
-
-        // Make sure polygon is a normal fill (NOT classification) and draped by clampToGround
-        e.polygon.height = undefined;
-        e.polygon.extrudedHeight = undefined;
-        e.polygon.perPositionHeight = false;
-        e.polygon.outline = false;
-
-        // Fields: ADM4_EN = barangay, ADM3_EN = municipality
-        const barangay = e.properties?.ADM4_EN?.getValue?.(now) ?? "Unknown barangay";
-        const municipality = e.properties?.ADM3_EN?.getValue?.(now) ?? "Unknown municipality";
-
-        // ✅ Title (prevents UUID like 843508c7-...)
-        e.name = `${barangay}, ${municipality}`;
-
-        // ✅ Body includes RiskCls value (important)
-        e.description = `
-          <div style="font-family:Arial,sans-serif; font-size:13px; line-height:1.45; padding:2px 0;">
-            <div style="font-size:16px; font-weight:900; margin:2px 0 2px;">
-              ${escapeHtml(barangay)}
-            </div>
-            <div style="color:#555; font-size:12.5px; margin-bottom:10px;">
-              Municipality: <b>${escapeHtml(municipality)}</b>
-            </div>
-
-            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;
-                        padding:10px; border:1px solid #e8e8e8; border-radius:12px; background:#fafafa;">
-              <div>
-                <div style="font-size:11.5px; color:#666; font-weight:800; letter-spacing:.2px;">
-                  RISK (RiskCls)
-                </div>
-                <div style="margin-top:6px;">
-                  ${riskBadge(riskCls)}
-                </div>
-                <div style="margin-top:6px; font-size:12px; color:#666;">
-                  Raw value: <b>${escapeHtml(riskCls)}</b>
-                </div>
-              </div>
-
-              <div style="text-align:right;">
-                <div style="font-size:11.5px; color:#666; font-weight:800; letter-spacing:.2px;">
-                  DATA
-                </div>
-                <div style="margin-top:6px; font-size:12px; color:#444;">
-                  FrostRiskPrelim (Ion)
-                </div>
-              </div>
-            </div>
-
-            <div style="margin-top:10px; padding-top:8px; border-top:1px solid #eee;
-                        font-size:12px; color:#666;">
-              Tip: adjust opacity to compare terrain vs. risk overlay.
-            </div>
+    e.description=`
+      <div style="font-family:Arial; font-size:13px;">
+        <div style="font-size:16px; font-weight:900;">${escapeHtml(barangay)}</div>
+        <div style="color:#555; margin-bottom:10px;">
+          Municipality: <b>${escapeHtml(muni)}</b>
+        </div>
+        <div style="padding:10px; border:1px solid #eee; border-radius:10px; background:#fafafa;">
+          <div style="font-weight:800; font-size:12px;">RISKCLS</div>
+          <div style="margin-top:6px; font-weight:900; color:${riskColor(risk)};">
+            ${riskLabel(risk)}
           </div>
-        `;
-      }
+        </div>
+      </div>`;
+  }
 
-      return ds;
+  return ds;
+}
+
+// ================= UI =================
+function wireUI(ds){
+  const slider=document.getElementById("riskSlider");
+  const val=document.getElementById("riskValue");
+
+  function applyOpacity(a){
+    for(const e of ds.entities.values){
+      if(!e.polygon) continue;
+      e.polygon.material=new Cesium.ColorMaterialProperty(
+        e._baseColor.withAlpha(a)
+      );
     }
+  }
 
-    // =========================
-    // UI
-    // =========================
-    function wireUI(riskDS){
-      const slider = document.getElementById("riskSlider");
-      const valueLabel = document.getElementById("riskValue");
+  applyOpacity(slider.value/100);
 
-      function applyOpacity(alpha){
-        for (const e of riskDS.entities.values){
-          if (!e.polygon) continue;
-          e.polygon.material = new Cesium.ColorMaterialProperty(e._baseRiskColor.withAlpha(alpha));
-        }
-      }
+  slider.addEventListener("input",()=>{
+    val.textContent=slider.value+"%";
+    applyOpacity(slider.value/100);
+  });
 
-      applyOpacity(Number(slider.value) / 100);
+  const exag=document.getElementById("exagSlider");
+  const exagVal=document.getElementById("exagValue");
 
-      slider.addEventListener("input", () => {
-        const pct = Number(slider.value);
-        valueLabel.textContent = pct + "%";
-        applyOpacity(pct / 100);
-      });
+  exag.addEventListener("input",()=>{
+    const v=exag.value/100;
+    exagVal.textContent=v.toFixed(2)+"×";
+    viewer.scene.globe.terrainExaggeration=v;
+  });
+}
 
-      const exagSlider = document.getElementById("exagSlider");
-      const exagValue = document.getElementById("exagValue");
+// ================= PANEL TOGGLE =================
+document.getElementById("toggleBtn").addEventListener("click",()=>{
+  const panel=document.getElementById("controlPanel");
+  panel.classList.toggle("collapsed");
+  document.getElementById("toggleBtn").textContent=
+    panel.classList.contains("collapsed") ? "Show" : "Hide";
+});
 
-      exagSlider.addEventListener("input", () => {
-        const ex = Number(exagSlider.value) / 100;
-        exagValue.textContent = ex.toFixed(2) + "×";
-        viewer.scene.globe.terrainExaggeration = ex;
-      });
-    }
+// ================= RUN =================
+(async()=>{
+  await loadBoundary();
+  const riskDS=await loadRisk();
+  wireUI(riskDS);
+})();
+</script>
 
-    // =========================
-    // RUN
-    // =========================
-    (async () => {
-      try {
-        const boundaryDS = await loadBoundary();
-        const riskDS = await loadRisk();
-
-        wireUI(riskDS);
-
-        await viewer.flyTo(boundaryDS);
-        await viewer.flyTo(riskDS);
-      } catch (err){
-        console.error("LOAD ERROR:", err);
-        alert("Load failed. Press F12 → Console and copy the first red error line.");
-      }
-    })();
-  </script>
 </body>
 </html>
