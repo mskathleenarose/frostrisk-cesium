@@ -289,9 +289,18 @@ function wireUI(ds){
 
 // ================= RUN =================
 (async()=>{
-  await loadBoundary();
-  const riskDS=await loadRisk();
-  wireUI(riskDS);
+  try{
+    const boundaryDS = await loadBoundary();
+    const riskDS = await loadRisk();
+
+    wireUI(riskDS);
+
+    // 🔥 Automatically zoom to your actual data
+    await viewer.flyTo(riskDS);
+
+  } catch(err){
+    console.error(err);
+  }
 })();
 </script>
 
