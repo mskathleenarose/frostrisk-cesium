@@ -84,7 +84,7 @@
         <b>Legend</b><br>
         <span class="swatch" style="background:#e0e0e0"></span>None<br>
         <span class="swatch" style="background:#2e7d32"></span>Mild<br>
-        <span class="swatch" style="background:#f9a825"></span>Moderate<br>
+        <span class="swatch" style="background:#feef01"></span>Moderate<br>
         <span class="swatch" style="background:#1565c0"></span>Severe
       </div>
 
@@ -205,10 +205,10 @@
 
       const bg =
         (levelRaw === "3" || levelNorm === "severe")   ? "#1565c0" :
-        (levelRaw === "2" || levelNorm === "moderate") ? "#f9a825" :
+        (levelRaw === "2" || levelNorm === "moderate") ? "#feef01" :
         (levelRaw === "1" || levelNorm === "mild")     ? "#2e7d32" : "#e0e0e0";
 
-      const fg = (bg === "#f9a825" || bg === "#e0e0e0") ? "#111" : "#fff";
+      const fg = (bg === "#feef01" || bg === "#e0e0e0") ? "#111" : "#fff";
 
       return `<span style="
         display:inline-flex; align-items:center; gap:6px;
