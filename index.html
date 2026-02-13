@@ -110,7 +110,7 @@ input[type="range"]{ width:240px; }
     </div>
 
     <div class="small" style="margin-top:10px;">
-      Drag to rotate • Right-drag to pan • Scroll to zoom • Tilt in 3D
+      Controls: drag to rotate • right-drag/Ctrl-drag to pan • scroll to zoom • tilt in 3D
     </div>
 
   </div>
@@ -126,14 +126,14 @@ const RISK_FIELD = "RiskCls";
 Cesium.Ion.defaultAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1NjIyMmEzMy01NmJkLTQwYTQtYjM5MS02NTA4ZmNjMGI1MTAiLCJpZCI6MzU5OTE1LCJpYXQiOjE3NjMwMDg3NTl9.BD0gTbvODVhDqjfV-i31W0UitaC2WHbdA33zsJuzSzg";
 
 // ================= VIEWER =================
-const viewer = new Cesium.Viewer("cesiumContainer",{
+const viewer = new Cesium.Viewer("cesiumContainer", {
   terrain: Cesium.Terrain.fromWorldTerrain(),
-  animation:false,
-  timeline:false,
-  baseLayerPicker:true,
-  sceneModePicker:true,
-  geocoder:true,
-  homeButton:true
+  animation: false,
+  timeline: false,
+  baseLayerPicker: true,
+  sceneModePicker: true,
+  geocoder: true,
+  homeButton: true
 });
 
 viewer.scene.mode = Cesium.SceneMode.SCENE3D;
@@ -149,6 +149,14 @@ viewer.camera.setView({
     pitch:Cesium.Math.toRadians(-45),
     roll:0
   }
+});
+
+// ================= PANEL TOGGLE =================
+document.getElementById("toggleBtn").addEventListener("click",()=>{
+  const panel=document.getElementById("controlPanel");
+  panel.classList.toggle("collapsed");
+  document.getElementById("toggleBtn").textContent=
+    panel.classList.contains("collapsed") ? "Show" : "Hide";
 });
 
 // ================= HELPERS =================
@@ -222,9 +230,6 @@ async function loadRisk(){
 
     e._baseColor=color;
 
-    e.polygon.height=undefined;
-    e.polygon.extrudedHeight=undefined;
-    e.polygon.perPositionHeight=false;
     e.polygon.material=new Cesium.ColorMaterialProperty(color.withAlpha(0.65));
     e.polygon.outline=false;
 
@@ -281,14 +286,6 @@ function wireUI(ds){
     viewer.scene.globe.terrainExaggeration=v;
   });
 }
-
-// ================= PANEL TOGGLE =================
-document.getElementById("toggleBtn").addEventListener("click",()=>{
-  const panel=document.getElementById("controlPanel");
-  panel.classList.toggle("collapsed");
-  document.getElementById("toggleBtn").textContent=
-    panel.classList.contains("collapsed") ? "Show" : "Hide";
-});
 
 // ================= RUN =================
 (async()=>{
