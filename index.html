@@ -12,91 +12,57 @@
 
     /* ================= TOP SEARCH BAR (SHORT + CENTERED) ================= */
     .topBar{
-      position:absolute;
-      top:10px;
-      left:50%;
-      transform:translateX(-50%);
+      position:absolute; top:10px; left:50%; transform:translateX(-50%);
       z-index:1005;
-
-      width:min(600px, calc(100vw - 24px));
-      height:40px;
+      width:min(760px, calc(100vw - 24px));
+      height:48px;
       border-radius:14px;
-
       background:rgba(20,27,36,0.92);
       backdrop-filter: blur(8px);
       box-shadow:0 12px 30px rgba(0,0,0,0.22);
       border:1px solid rgba(255,255,255,0.08);
-
-      display:flex;
-      align-items:center;
-      gap:10px;
+      display:flex; align-items:center; gap:10px;
       padding:8px 10px;
-      font-family: Arial, sans-serif;
-      color:#fff;
+      font-family: Arial, sans-serif; color:#fff;
     }
-
     .brand{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      padding:5px 9px;
-      border-radius:12px;
+      display:flex; align-items:center; gap:8px;
+      padding:5px 9px; border-radius:12px;
       background:rgba(255,255,255,0.06);
       border:1px solid rgba(255,255,255,0.08);
-      font-weight:900;
-      letter-spacing:.3px;
-      white-space:nowrap;
+      font-weight:900; letter-spacing:.3px; white-space:nowrap;
     }
     .brand .flake{ font-size:16px; line-height:1; }
     .brand .name{ font-size:16px; }
     .brand .name span{ opacity:0.9; font-weight:900; }
-
     .searchWrap{
-      flex:1;
-      height:34px;
-      border-radius:999px;
+      flex:1; height:34px; border-radius:999px;
       background:rgba(255,255,255,0.06);
       border:1px solid rgba(255,255,255,0.10);
-      display:flex;
-      align-items:center;
-      padding:0 12px;
-      gap:8px;
+      display:flex; align-items:center; padding:0 12px; gap:8px;
     }
     .searchIcon{ width:16px; height:16px; opacity:0.9; flex:0 0 auto; }
-
     .searchInput{
-      flex:1;
-      height:100%;
-      border:none;
-      outline:none;
-      background:transparent;
-      color:#fff;
-      font-size:14px;
-      font-weight:700;
+      flex:1; height:100%;
+      border:none; outline:none;
+      background:transparent; color:#fff;
+      font-size:14px; font-weight:700;
     }
     .searchInput::placeholder{ color: rgba(255,255,255,0.72); font-weight:600; }
-
     .goBtn{
-      width:38px;
-      height:34px;
-      border:none;
-      border-radius:999px;
+      width:38px; height:34px;
+      border:none; border-radius:999px;
       background:rgba(255,255,255,0.10);
       border:1px solid rgba(255,255,255,0.12);
       cursor:pointer;
-      display:flex;
-      align-items:center;
-      justify-content:center;
+      display:flex; align-items:center; justify-content:center;
     }
     .goBtn:hover{ background:rgba(255,255,255,0.16); }
     .goIcon{ width:16px; height:16px; opacity:0.92; }
 
     /* ================= LEFT CONTROL PANEL ================= */
     .panel{
-      position:absolute;
-      top:68px;
-      left:12px;
-      z-index:999;
+      position:absolute; top:68px; left:12px; z-index:999;
       background:rgba(255,255,255,0.95);
       padding:10px 12px;
       border-radius:12px;
@@ -109,32 +75,21 @@
       backdrop-filter: blur(6px);
     }
     .panel.collapsed #panelContent{ display:none; }
-
     .row{ margin-top:10px; }
     input[type="range"]{ width:240px; }
     .legend{ margin-top:10px; line-height:1.75; }
     .swatch{ display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:6px; vertical-align:middle; }
     .small{ color:#444; font-size:12px; }
-
     .btn{
-      border:none;
-      background:#0b4a8b;
-      color:white;
-      padding:6px 10px;
-      border-radius:10px;
-      cursor:pointer;
-      font-weight:800;
-      font-size:12px;
+      border:none; background:#0b4a8b; color:white;
+      padding:6px 10px; border-radius:10px; cursor:pointer;
+      font-weight:800; font-size:12px;
     }
 
     /* ================= RIGHT IMPACT PANEL (SCROLL) ================= */
     .impactPanel{
-      position:absolute;
-      top:68px;
-      right:12px;
-      z-index:999;
-      width:380px;
-      max-width: calc(100vw - 24px);
+      position:absolute; top:68px; right:12px; z-index:999;
+      width:380px; max-width: calc(100vw - 24px);
       background:rgba(255,255,255,0.96);
       border-radius:16px;
       box-shadow:0 14px 34px rgba(0,0,0,0.22);
@@ -143,143 +98,68 @@
       border:1px solid rgba(0,0,0,0.10);
       backdrop-filter: blur(8px);
       transition: transform .18s ease, opacity .18s ease;
-
       max-height: calc(100vh - 80px);
-      display:flex;
-      flex-direction:column;
+      display:flex; flex-direction:column;
     }
-
-    .impactPanel.collapsed{
-      transform: translateY(-6px);
-      opacity:0.96;
-    }
+    .impactPanel.collapsed{ transform: translateY(-6px); opacity:0.96; }
     .impactPanel.collapsed .impactBody,
     .impactPanel.collapsed .impactFooter{ display:none; }
-
     .impactHeader{
       padding:12px 12px 10px;
       background: linear-gradient(135deg, rgba(11,74,139,1), rgba(7,55,99,1));
       color:#fff;
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:10px;
+      display:flex; justify-content:space-between; align-items:flex-start; gap:10px;
       flex:0 0 auto;
     }
     .impactHeader b{ font-size:14px; letter-spacing:.2px; }
     .impactHeader .sub{ font-size:12px; opacity:0.92; margin-top:2px; }
-
     .impactHeaderBtns{ display:flex; align-items:center; gap:8px; }
     .impactBtn{
-      border:none;
-      background:rgba(255,255,255,0.18);
-      color:#fff;
-      padding:6px 10px;
-      border-radius:10px;
-      cursor:pointer;
-      font-weight:900;
-      font-size:12px;
+      border:none; background:rgba(255,255,255,0.18); color:#fff;
+      padding:6px 10px; border-radius:10px; cursor:pointer;
+      font-weight:900; font-size:12px;
     }
-
-    .impactBody{
-      padding:12px;
-      overflow-y:auto;
-      flex:1 1 auto;
-    }
-
-    .impactCard{
-      border:1px solid rgba(0,0,0,0.08);
-      border-radius:14px;
-      padding:12px;
-      background:#fff;
-    }
-
-    .placeTitle{
-      font-size:18px;
-      font-weight:900;
-      margin:0 0 2px;
-      color:#111;
-    }
+    .impactBody{ padding:12px; overflow-y:auto; flex:1 1 auto; }
+    .impactCard{ border:1px solid rgba(0,0,0,0.08); border-radius:14px; padding:12px; background:#fff; }
+    .placeTitle{ font-size:18px; font-weight:900; margin:0 0 2px; color:#111; }
     .muted{ color:#666; font-size:12px; }
-
     .grid2{
-      display:grid;
-      grid-template-columns: 1fr auto;
-      gap:10px;
-      align-items:center;
-      margin-top:10px;
-      padding:10px;
+      display:grid; grid-template-columns: 1fr auto;
+      gap:10px; align-items:center;
+      margin-top:10px; padding:10px;
       border-radius:12px;
       background:rgba(11,74,139,0.04);
       border:1px solid rgba(11,74,139,0.12);
     }
-
     .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      padding:6px 10px;
-      border-radius:999px;
-      font-weight:900;
-      font-size:12px;
+      display:inline-flex; align-items:center; gap:6px;
+      padding:6px 10px; border-radius:999px;
+      font-weight:900; font-size:12px;
       border:1px solid rgba(0,0,0,0.08);
-      user-select:none;
-      white-space:nowrap;
+      user-select:none; white-space:nowrap;
     }
-    .pillDot{
-      width:8px; height:8px; border-radius:50%;
-      display:inline-block; opacity:.9;
-    }
-
+    .pillDot{ width:8px; height:8px; border-radius:50%; display:inline-block; opacity:.9; }
     .miniMeta{
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      margin-top:10px;
-      padding-top:10px;
+      display:flex; justify-content:space-between; gap:10px;
+      margin-top:10px; padding-top:10px;
       border-top:1px dashed rgba(0,0,0,0.15);
     }
     .miniMeta b{ font-size:11px; letter-spacing:.25px; color:#333; }
     .miniMeta .muted{ font-size:12px; }
-
     .section{ margin-top:12px; }
-    .sectionTitle{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      font-weight:900;
-      color:#222;
-      margin-bottom:6px;
-    }
-
+    .sectionTitle{ display:flex; align-items:center; gap:8px; font-weight:900; color:#222; margin-bottom:6px; }
     .icoChip{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      width:26px;
-      height:26px;
-      border-radius:10px;
+      display:inline-flex; align-items:center; justify-content:center;
+      width:26px; height:26px; border-radius:10px;
       border:1px solid rgba(0,0,0,0.12);
       background:rgba(0,0,0,0.03);
-      font-size:16px;
-      line-height:1;
-      flex:0 0 auto;
+      font-size:16px; line-height:1; flex:0 0 auto;
     }
-
-    .impactList{
-      margin:0;
-      padding-left:18px;
-      color:#333;
-      line-height:1.5;
-    }
+    .impactList{ margin:0; padding-left:18px; color:#333; line-height:1.5; }
     .impactList li{ margin:4px 0; }
-
     .impactFooter{
-      padding:10px 12px;
-      border-top:1px solid rgba(0,0,0,0.08);
-      font-size:12px;
-      color:#555;
-      background:rgba(0,0,0,0.02);
+      padding:10px 12px; border-top:1px solid rgba(0,0,0,0.08);
+      font-size:12px; color:#555; background:rgba(0,0,0,0.02);
       flex:0 0 auto;
     }
 
@@ -392,23 +272,17 @@
         </div>
 
         <div class="section">
-          <div class="sectionTitle">
-            <span class="icoChip">⚠️</span><span>Possible impacts</span>
-          </div>
+          <div class="sectionTitle"><span class="icoChip">⚠️</span><span>Possible impacts</span></div>
           <ul class="impactList" id="impactList"><li>—</li></ul>
         </div>
 
         <div class="section">
-          <div class="sectionTitle">
-            <span class="icoChip">✅</span><span>Recommended actions</span>
-          </div>
+          <div class="sectionTitle"><span class="icoChip">✅</span><span>Recommended actions</span></div>
           <ul class="impactList" id="actionList"><li>—</li></ul>
         </div>
 
         <div class="section">
-          <div class="sectionTitle">
-            <span class="icoChip">📸</span><span>Insurance & reporting</span>
-          </div>
+          <div class="sectionTitle"><span class="icoChip">📸</span><span>Insurance & reporting</span></div>
           <ul class="impactList" id="insList">
             <li>Report crop damage within <b>7 days</b> to MAO/PCIC (if insured).</li>
             <li>Record farm location + barangay.</li>
@@ -420,7 +294,7 @@
     </div>
 
     <div class="impactFooter">
-      Tip: Use the opacity slider to compare terrain vs. risk overlay.
+      Tip: Click a barangay to highlight its border.
     </div>
   </div>
 
@@ -432,18 +306,23 @@
     const BOUNDARY_ASSET_ID = 4076193;     // Benguet Municipality (GeoJSON)
     const RISK_FIELD = "RiskCls";
 
-    // ✅ Noticeable but thin barangay borders (works even with clampToGround)
-    const BARANGAY_BORDER_WIDTH = 2; // thin, but visible
-    const BARANGAY_BORDER_COLOR = Cesium.Color.WHITE.withAlpha(0.78);
-    const BARANGAY_BORDER_GLOW  = 0.08; // subtle glow to stand out
+    // Default barangay border (thin but visible)
+    const BORDER_DEFAULT = {
+      width: 2,
+      color: Cesium.Color.WHITE.withAlpha(0.78),
+      glowPower: 0.08
+    };
+
+    // Selected barangay border (highlight/glow)
+    const BORDER_SELECTED = {
+      width: 4,
+      color: Cesium.Color.WHITE.withAlpha(0.98),
+      glowPower: 0.22
+    };
 
     const START = {
       destination: Cesium.Cartesian3.fromDegrees(120.7, 16.6, 65000),
-      orientation: {
-        heading: Cesium.Math.toRadians(20),
-        pitch: Cesium.Math.toRadians(-45),
-        roll: 0
-      }
+      orientation: { heading: Cesium.Math.toRadians(20), pitch: Cesium.Math.toRadians(-45), roll: 0 }
     };
 
     // =========================
@@ -487,12 +366,9 @@
       const input = document.getElementById("searchInput");
       const q = (input.value || "").trim();
       if (!q) return;
-
       geocoderVM.searchText = q;
-
-      try {
-        await geocoderVM.search();
-      } catch (e){
+      try { await geocoderVM.search(); }
+      catch (e){
         console.warn("Geocode failed:", e);
         input.placeholder = "No results. Try 'Atok, Benguet' or 'Baguio City'";
       }
@@ -509,15 +385,13 @@
     document.getElementById("toggleBtn").addEventListener("click", () => {
       const panel = document.getElementById("controlPanel");
       panel.classList.toggle("collapsed");
-      document.getElementById("toggleBtn").textContent =
-        panel.classList.contains("collapsed") ? "Show" : "Hide";
+      document.getElementById("toggleBtn").textContent = panel.classList.contains("collapsed") ? "Show" : "Hide";
     });
 
     document.getElementById("impactToggleBtn").addEventListener("click", () => {
       const p = document.getElementById("impactPanel");
       p.classList.toggle("collapsed");
-      document.getElementById("impactToggleBtn").textContent =
-        p.classList.contains("collapsed") ? "Show" : "Hide";
+      document.getElementById("impactToggleBtn").textContent = p.classList.contains("collapsed") ? "Show" : "Hide";
     });
 
     // =========================
@@ -528,40 +402,30 @@
     function baseRiskColor(levelRaw){
       const raw = (levelRaw ?? "").toString().trim();
       const level = raw.toLowerCase();
-
-      // numeric
-      if (raw === "3") return Cesium.Color.fromCssColorString("#1565c0"); // Severe
-      if (raw === "2") return Cesium.Color.fromCssColorString("#feef01"); // Moderate
-      if (raw === "1") return Cesium.Color.fromCssColorString("#2e7d32"); // Mild
-      if (raw === "0") return Cesium.Color.fromCssColorString("#a5d6a7"); // Minimal
-
-      // text
+      if (raw === "3") return Cesium.Color.fromCssColorString("#1565c0");
+      if (raw === "2") return Cesium.Color.fromCssColorString("#feef01");
+      if (raw === "1") return Cesium.Color.fromCssColorString("#2e7d32");
+      if (raw === "0") return Cesium.Color.fromCssColorString("#a5d6a7");
       if (level === "severe")   return Cesium.Color.fromCssColorString("#1565c0");
       if (level === "moderate") return Cesium.Color.fromCssColorString("#feef01");
       if (level === "mild")     return Cesium.Color.fromCssColorString("#2e7d32");
       if (level === "minimal")  return Cesium.Color.fromCssColorString("#a5d6a7");
-
       return Cesium.Color.fromCssColorString("#a5d6a7");
     }
 
     function escapeHtml(s){
       return String(s ?? "")
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
+        .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;").replaceAll("'","&#039;");
     }
 
     function riskLabel(levelRaw){
       const raw = (levelRaw ?? "").toString().trim();
       const level = raw.toLowerCase();
-
       if (raw === "3" || level === "severe") return "Severe";
       if (raw === "2" || level === "moderate") return "Moderate";
       if (raw === "1" || level === "mild") return "Mild";
       if (raw === "0" || level === "minimal") return "Minimal";
-
       return raw ? (raw.charAt(0).toUpperCase() + raw.slice(1)) : "Minimal";
     }
 
@@ -569,20 +433,16 @@
       const raw = (levelRaw ?? "").toString().trim();
       const levelNorm = norm(levelRaw);
       const label = riskLabel(levelRaw);
-
       const bg =
         (raw === "3" || levelNorm === "severe")   ? "#1565c0" :
         (raw === "2" || levelNorm === "moderate") ? "#feef01" :
         (raw === "1" || levelNorm === "mild")     ? "#2e7d32" :
         (raw === "0" || levelNorm === "minimal")  ? "#a5d6a7" :
         "#a5d6a7";
-
       const fg = (bg === "#feef01" || bg === "#a5d6a7") ? "#111" : "#fff";
-      const dot = fg;
-
       return `
         <span class="pill" style="background:${bg}; color:${fg};">
-          <span class="pillDot" style="background:${dot};"></span>
+          <span class="pillDot" style="background:${fg};"></span>
           ${escapeHtml(label)}
         </span>
       `;
@@ -590,10 +450,7 @@
 
     function setList(el, items){
       el.innerHTML = "";
-      if (!items || !items.length){
-        el.innerHTML = "<li>—</li>";
-        return;
-      }
+      if (!items || !items.length){ el.innerHTML = "<li>—</li>"; return; }
       for (const it of items){
         const li = document.createElement("li");
         li.textContent = it;
@@ -602,98 +459,85 @@
     }
 
     // =========================
-    // IMPACT CONTENT (EMOJI-ENHANCED)
+    // IMPACT CONTENT
     // =========================
     const IMPACTS = {
       minimal: {
-        impacts: [
-          "Frost is unlikely based on current classification.",
-          "Cold pockets may still occur in low-lying areas."
-        ],
-        actions: [
-          "Continue routine monitoring of advisories.",
-          "Check early morning temperature observations when available."
-        ]
+        impacts: ["Frost is unlikely based on current classification.", "Cold pockets may still occur in low-lying areas."],
+        actions: ["Continue routine monitoring of advisories.", "Check early morning temperature observations when available."]
       },
       mild: {
-        impacts: [
-          "Light frost possible in exposed areas (valleys/slopes).",
-          "Minor leaf scorching on sensitive crops and seedlings.",
-          "Possible slowdown in growth for leafy vegetables."
-        ],
-        actions: [
-          "Cover seedlings (plastic/row cover/net) overnight.",
-          "Light irrigation before sunrise (if feasible).",
-          "Monitor early morning temperatures and advisories."
-        ]
+        impacts: ["Light frost possible in exposed areas (valleys/slopes).", "Minor leaf scorching on sensitive crops and seedlings.", "Possible slowdown in growth for leafy vegetables."],
+        actions: ["Cover seedlings (plastic/row cover/net) overnight.", "Light irrigation before sunrise (if feasible).", "Monitor early morning temperatures and advisories."]
       },
       moderate: {
-        impacts: [
-          "Visible frost formation possible.",
-          "Leaf burn and quality reduction (leafy veg/cabbage outer leaves).",
-          "Reduced yield potential for potato and other highland crops."
-        ],
-        actions: [
-          "Use row covers/tunnels; prioritize high-value plots.",
-          "Irrigate and spray water strategically during frost window (where applicable).",
-          "Avoid late-day nitrogen-heavy fertilization before cold nights."
-        ]
+        impacts: ["Visible frost formation possible.", "Leaf burn and quality reduction (leafy veg/cabbage outer leaves).", "Reduced yield potential for potato and other highland crops."],
+        actions: ["Use row covers/tunnels; prioritize high-value plots.", "Irrigate strategically during frost window (where applicable).", "Avoid late-day nitrogen-heavy fertilization before cold nights."]
       },
       severe: {
-        impacts: [
-          "High likelihood of damaging frost; tissue injury/dieback possible.",
-          "Major yield loss risk for potato, cabbage, and seedlings.",
-          "Severe quality downgrade (burned leaves/heads, stunted growth)."
-        ],
-        actions: [
-          "Harvest mature crops early if a severe frost night is expected.",
-          "Deploy protective covering + irrigation/windbreaks if available.",
-          "Document damage immediately for reporting/insurance claims."
-        ]
+        impacts: ["High likelihood of damaging frost; tissue injury/dieback possible.", "📉 Major yield loss risk for potato, cabbage, and seedlings.", "Severe quality downgrade (burned leaves/heads, stunted growth)."],
+        actions: ["Harvest mature crops early if a severe frost night is expected.", "🛡️ Deploy protective covering + irrigation/windbreaks if available.", "Document damage immediately for reporting/insurance claims."]
       }
     };
 
     function impactKeyFromRisk(riskRaw){
       const raw = (riskRaw ?? "").toString().trim();
       const r = norm(riskRaw);
-
       if (raw === "3" || r === "severe") return "severe";
       if (raw === "2" || r === "moderate") return "moderate";
       if (raw === "1" || r === "mild") return "mild";
       if (raw === "0" || r === "minimal") return "minimal";
-
       return "minimal";
     }
 
     // =========================
-    // BORDER BUILDER (per polygon)
-    // Works even when polygons are clampToGround
+    // BORDER BUILDER + HIGHLIGHTER
     // =========================
-    function addPolygonBorderPolyline(polygonEntity){
+    function makeGlowMaterial(color, glowPower){
+      return new Cesium.PolylineGlowMaterialProperty({ glowPower, color });
+    }
+
+    function createBorderPolylineForPolygon(polygonEntity){
       const now = Cesium.JulianDate.now();
-      if (!polygonEntity?.polygon?.hierarchy) return;
+      const hierarchy = polygonEntity?.polygon?.hierarchy?.getValue(now);
+      if (!hierarchy || !hierarchy.positions || hierarchy.positions.length < 2) return null;
 
-      const hierarchy = polygonEntity.polygon.hierarchy.getValue(now);
-      if (!hierarchy || !hierarchy.positions || hierarchy.positions.length < 2) return;
-
-      // Close the loop so the last point connects to the first
       const positions = hierarchy.positions.slice();
-      positions.push(hierarchy.positions[0]);
+      positions.push(hierarchy.positions[0]); // close loop
 
-      const borderEntity = viewer.entities.add({
+      const border = viewer.entities.add({
         polyline: {
           positions,
           clampToGround: true,
-          width: BARANGAY_BORDER_WIDTH,
-          material: new Cesium.PolylineGlowMaterialProperty({
-            glowPower: BARANGAY_BORDER_GLOW,
-            color: BARANGAY_BORDER_COLOR
-          })
+          width: BORDER_DEFAULT.width,
+          material: makeGlowMaterial(BORDER_DEFAULT.color, BORDER_DEFAULT.glowPower)
         }
       });
 
-      // keep a reference so you can manage it later if needed
-      polygonEntity._borderEntity = borderEntity;
+      return border;
+    }
+
+    // keep track of currently selected border so we can revert it
+    let currentSelectedRiskEntity = null;
+
+    function applyBorderStyle(borderEntity, style){
+      if (!borderEntity?.polyline) return;
+      borderEntity.polyline.width = style.width;
+      borderEntity.polyline.material = makeGlowMaterial(style.color, style.glowPower);
+    }
+
+    function setSelectedBorder(riskEntity){
+      // reset previous
+      if (currentSelectedRiskEntity?. _borderEntity){
+        applyBorderStyle(currentSelectedRiskEntity._borderEntity, BORDER_DEFAULT);
+      }
+
+      currentSelectedRiskEntity = riskEntity || null;
+
+      // apply selected
+      if (currentSelectedRiskEntity?. _borderEntity){
+        applyBorderStyle(currentSelectedRiskEntity._borderEntity, BORDER_SELECTED);
+      }
     }
 
     // =========================
@@ -754,8 +598,8 @@
         e.polygon.extrudedHeight = undefined;
         e.polygon.perPositionHeight = false;
 
-        // Important: polygon.outline is unreliable on clampToGround, so use polylines:
-        addPolygonBorderPolyline(e);
+        // ✅ create border polyline per barangay and store reference
+        e._borderEntity = createBorderPolylineForPolygon(e);
 
         // remove Cesium popup strings
         e.name = "";
@@ -798,7 +642,7 @@
     }
 
     // =========================
-    // IMPACT PANEL WIRING
+    // IMPACT PANEL WIRING (+ border highlight on click)
     // =========================
     function wireImpactPanel(riskDS){
       const placeEl = document.getElementById("impactPlace");
@@ -820,6 +664,9 @@
         riskFieldText.textContent = RISK_FIELD;
         riskDataText.textContent = "FrostRisk_v1 (Ion)";
         riskRawText.textContent = "—";
+
+        // ✅ also clear border highlight
+        setSelectedBorder(null);
       }
 
       clearPanel();
@@ -827,10 +674,14 @@
       const riskSet = new Set(riskDS.entities.values);
 
       viewer.selectedEntityChanged.addEventListener((entity) => {
+        // if nothing selected / not a risk polygon, clear
         if (!entity || !entity.properties || !entity.polygon || !riskSet.has(entity)){
           clearPanel();
           return;
         }
+
+        // ✅ highlight the selected barangay outline
+        setSelectedBorder(entity);
 
         const now = Cesium.JulianDate.now();
 
