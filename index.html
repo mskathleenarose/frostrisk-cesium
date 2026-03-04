@@ -15,7 +15,16 @@
       width:100%;
       height:100%;
       font-family:'Open Sans', Arial, sans-serif;
+    }
+    html, body{
+      width:100%;
+      height:100%;
+      margin:0;
+      padding:0;
+      overflow:hidden;
+    }
 
+    #frost3dApp{
       --brand:#073763;
       --brand2:#0b4a8b;
 
@@ -29,15 +38,7 @@
       --topOffset: 0px;
     }
 
-    html, body{
-      width:100%;
-      height:100%;
-      margin:0;
-      padding:0;
-      overflow:hidden;
-      background:#000;
-    }
-
+    /* Make sure Cesium canvas is truly full */
     #frost3dApp #cesiumContainer{
       position:absolute;
       inset:0;
@@ -54,6 +55,8 @@
 
       width: min(560px, calc(100vw - var(--sidebarCurrentW) - 24px));
       height:48px;
+      min-height:48px;
+      max-height:48px;
 
       border-radius:14px;
       background: rgba(7,55,99,0.92);
@@ -70,6 +73,7 @@
       overflow:hidden;
       color:#fff;
     }
+
     #frost3dApp .f3-brand{
       display:flex; align-items:center; gap:8px;
       padding:6px 10px; border-radius:12px;
@@ -317,6 +321,7 @@
     }
     #frost3dApp .f3-sidebar.f3-collapsed .f3-dividerPill span{ transform: rotate(180deg); }
 
+    /* Cesium credits position */
     #frost3dApp .cesium-widget-credits{ right:12px !important; bottom:6px !important; }
   </style>
 </head>
@@ -466,28 +471,11 @@
       const BOUNDARY_ASSET_ID = 4076193;
       const RISK_FIELD = "RiskCls";
 
-      // IMPORTANT: slider can show 100%, but we render max at 0.96
-      // (visually still "full", but lets highlight stand out)
-      const MAX_RENDER_ALPHA = 0.96;
-      const SELECTED_DIM_ALPHA_AT_MAX = 0.86;
-
-      // border styling (stacked: core + halo)
-      const BORDER_DEFAULT = {
-        coreWidth: 2,
-        haloWidth: 6,
-        haloGlow: 0.18,
-        coreColor: Cesium.Color.WHITE.withAlpha(0.80),
-        coreOutline: Cesium.Color.BLACK.withAlpha(0.30),
-        haloColor: Cesium.Color.WHITE.withAlpha(0.55)
-      };
-
+      const BORDER_DEFAULT = { width: 2, color: Cesium.Color.WHITE.withAlpha(0.78), glowPower: 0.10 };
       const BORDER_SELECTED = {
-        coreWidth: 6,
-        haloWidth: 16,
-        haloGlow: 0.75,
-        coreColor: Cesium.Color.fromCssColorString("#00E5FF").withAlpha(1.00),
-        coreOutline: Cesium.Color.WHITE.withAlpha(0.95),
-        haloColor: Cesium.Color.fromCssColorString("#00E5FF").withAlpha(0.95)
+        width: 8,
+        color: Cesium.Color.fromCssColorString("#00E5FF").withAlpha(0.98),
+        glowPower: 0.55
       };
 
       const START = {
@@ -549,7 +537,7 @@
       });
 
       // =========================
-      // SIDEBAR DOCKING
+      // SIDEBAR + DOCKED SEARCH POSITION
       // =========================
       const sidebar = document.getElementById("sidebar");
       const sidebarToggleBtn = document.getElementById("sidebarToggleBtn");
@@ -693,75 +681,45 @@
       }
 
       // =========================
-      // BORDER BUILDER (STACKED CORE + HALO)
+      // BORDER BUILDER + HIGHLIGHTER
       // =========================
-      function matCore(color, outlineColor){
-        return new Cesium.PolylineOutlineMaterialProperty({
-          color,
-          outlineColor,
-          outlineWidth: 2
-        });
-      }
-      function matGlow(color, glowPower){
-        return new Cesium.PolylineGlowMaterialProperty({ color, glowPower });
+      function makeGlowMaterial(color, glowPower){
+        return new Cesium.PolylineGlowMaterialProperty({ glowPower, color });
       }
 
-      function createStackedBorder(polygonEntity){
+      function createBorderPolylineForPolygon(polygonEntity){
         const now = Cesium.JulianDate.now();
         const hierarchy = polygonEntity?.polygon?.hierarchy?.getValue(now);
-        if (!hierarchy?.positions?.length) return null;
+        if (!hierarchy || !hierarchy.positions || hierarchy.positions.length < 2) return null;
 
         const positions = hierarchy.positions.slice();
         positions.push(hierarchy.positions[0]);
 
-        const glow = viewer.entities.add({
+        return viewer.entities.add({
           polyline: {
             positions,
             clampToGround: true,
-            width: BORDER_DEFAULT.haloWidth,
-            material: matGlow(BORDER_DEFAULT.haloColor, BORDER_DEFAULT.haloGlow),
-            depthFailMaterial: matGlow(BORDER_DEFAULT.haloColor, Math.max(BORDER_DEFAULT.haloGlow, 0.35)),
-            zIndex: 5
+            width: BORDER_DEFAULT.width,
+            material: makeGlowMaterial(BORDER_DEFAULT.color, BORDER_DEFAULT.glowPower)
           }
         });
-
-        const core = viewer.entities.add({
-          polyline: {
-            positions,
-            clampToGround: true,
-            width: BORDER_DEFAULT.coreWidth,
-            material: matCore(BORDER_DEFAULT.coreColor, BORDER_DEFAULT.coreOutline),
-            depthFailMaterial: matCore(BORDER_DEFAULT.coreColor, BORDER_DEFAULT.coreOutline),
-            zIndex: 10
-          }
-        });
-
-        return { core, glow };
-      }
-
-      function applyStackStyle(stack, style, zBase){
-        if (!stack?.core?.polyline || !stack?.glow?.polyline) return;
-
-        stack.glow.polyline.width = style.haloWidth;
-        stack.glow.polyline.material = matGlow(style.haloColor, style.haloGlow);
-        stack.glow.polyline.depthFailMaterial = matGlow(style.haloColor, Math.max(style.haloGlow, 0.45));
-        stack.glow.polyline.zIndex = (zBase ?? 10);
-
-        stack.core.polyline.width = style.coreWidth;
-        stack.core.polyline.material = matCore(style.coreColor, style.coreOutline);
-        stack.core.polyline.depthFailMaterial = matCore(style.coreColor, style.coreOutline);
-        stack.core.polyline.zIndex = (zBase ?? 10) + 5;
       }
 
       let currentSelectedRiskEntity = null;
 
-      function setSelectedBorder(entity){
-        if (currentSelectedRiskEntity?._borderStack){
-          applyStackStyle(currentSelectedRiskEntity._borderStack, BORDER_DEFAULT, 10);
+      function applyBorderStyle(borderEntity, style){
+        if (!borderEntity?.polyline) return;
+        borderEntity.polyline.width = style.width;
+        borderEntity.polyline.material = makeGlowMaterial(style.color, style.glowPower);
+      }
+
+      function setSelectedBorder(riskEntity){
+        if (currentSelectedRiskEntity?._borderEntity){
+          applyBorderStyle(currentSelectedRiskEntity._borderEntity, BORDER_DEFAULT);
         }
-        currentSelectedRiskEntity = entity || null;
-        if (currentSelectedRiskEntity?._borderStack){
-          applyStackStyle(currentSelectedRiskEntity._borderStack, BORDER_SELECTED, 900);
+        currentSelectedRiskEntity = riskEntity || null;
+        if (currentSelectedRiskEntity?._borderEntity){
+          applyBorderStyle(currentSelectedRiskEntity._borderEntity, BORDER_SELECTED);
         }
       }
 
@@ -812,10 +770,8 @@
 
           e._baseRiskColor = baseRiskColor(riskCls);
           e.polygon.perPositionHeight = false;
-          e.polygon.outline = false;
 
-          // ✅ stacked outline (core + halo)
-          e._borderStack = createStackedBorder(e);
+          e._borderEntity = createBorderPolylineForPolygon(e);
 
           e.name = "";
           e.description = "";
@@ -824,45 +780,20 @@
       }
 
       // =========================
-      // UI WIRING (opacity + exaggeration + selected dim at "100%")
+      // UI WIRING
       // =========================
       function wireUI(riskDS){
         const slider = document.getElementById("riskSlider");
         const valueLabel = document.getElementById("riskValue");
 
-        let currentSliderAlpha = Number(slider.value) / 100;
-
-        function effectiveAlpha(a){
-          // cap visual alpha at 0.96 so highlight always appears
-          return Math.min(a, MAX_RENDER_ALPHA);
-        }
-
-        function setPolygonAlpha(entity, alpha){
-          if (!entity?.polygon) return;
-          entity.polygon.material = new Cesium.ColorMaterialProperty(entity._baseRiskColor.withAlpha(alpha));
-        }
-
-        function updateSelectedPolygonDim(){
-          if (!currentSelectedRiskEntity?.polygon) return;
-          const eff = effectiveAlpha(currentSliderAlpha);
-          const dim = (currentSliderAlpha >= 0.999) ? SELECTED_DIM_ALPHA_AT_MAX : eff;
-          setPolygonAlpha(currentSelectedRiskEntity, dim);
-        }
-        window.updateSelectedPolygonDim = updateSelectedPolygonDim;
-
-        function applyOpacity(sliderAlpha){
-          currentSliderAlpha = sliderAlpha;
-          const eff = effectiveAlpha(sliderAlpha);
-
+        function applyOpacity(alpha){
           for (const e of riskDS.entities.values){
             if (!e.polygon) continue;
-            setPolygonAlpha(e, eff);
+            e.polygon.material = new Cesium.ColorMaterialProperty(e._baseRiskColor.withAlpha(alpha));
           }
-
-          updateSelectedPolygonDim();
         }
 
-        applyOpacity(currentSliderAlpha);
+        applyOpacity(Number(slider.value) / 100);
 
         slider.addEventListener("input", () => {
           const pct = Number(slider.value);
@@ -900,7 +831,6 @@
           riskDataText.textContent = "FrostRisk_v1 (Ion)";
           riskRawText.textContent = "—";
           setSelectedBorder(null);
-          if (typeof window.updateSelectedPolygonDim === "function") window.updateSelectedPolygonDim();
         }
 
         clearPanel();
@@ -913,7 +843,6 @@
           }
 
           setSelectedBorder(entity);
-          if (typeof window.updateSelectedPolygonDim === "function") window.updateSelectedPolygonDim();
 
           const now = Cesium.JulianDate.now();
           const barangay = entity.properties?.ADM4_EN?.getValue?.(now) ?? "Unknown barangay";
@@ -943,10 +872,8 @@
         try {
           await loadBoundary();
           const riskDS = await loadRisk();
-
           wireUI(riskDS);
           wireImpactPanel(riskDS);
-
           await viewer.flyTo(riskDS);
         } catch (err){
           console.error("LOAD ERROR:", err);
