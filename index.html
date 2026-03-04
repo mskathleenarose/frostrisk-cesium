@@ -15,7 +15,16 @@
       width:100%;
       height:100%;
       font-family:'Open Sans', Arial, sans-serif;
+    }
+    html, body{
+      width:100%;
+      height:100%;
+      margin:0;
+      padding:0;
+      overflow:hidden;
+    }
 
+    #frost3dApp{
       --brand:#073763;
       --brand2:#0b4a8b;
 
@@ -29,15 +38,7 @@
       --topOffset: 0px;
     }
 
-    html, body{
-      width:100%;
-      height:100%;
-      margin:0;
-      padding:0;
-      overflow:hidden;
-      background:#000;
-    }
-
+    /* Make sure Cesium canvas is truly full */
     #frost3dApp #cesiumContainer{
       position:absolute;
       inset:0;
@@ -54,6 +55,8 @@
 
       width: min(560px, calc(100vw - var(--sidebarCurrentW) - 24px));
       height:48px;
+      min-height:48px;
+      max-height:48px;
 
       border-radius:14px;
       background: rgba(7,55,99,0.92);
@@ -70,6 +73,7 @@
       overflow:hidden;
       color:#fff;
     }
+
     #frost3dApp .f3-brand{
       display:flex; align-items:center; gap:8px;
       padding:6px 10px; border-radius:12px;
@@ -317,6 +321,7 @@
     }
     #frost3dApp .f3-sidebar.f3-collapsed .f3-dividerPill span{ transform: rotate(180deg); }
 
+    /* Cesium credits position */
     #frost3dApp .cesium-widget-credits{ right:12px !important; bottom:6px !important; }
   </style>
 </head>
@@ -454,7 +459,7 @@
       </div>
 
       <div class="f3-sideFooter">
-        Tip: Click a barangay to highlight it (fill-based highlight works at 100% opacity).
+        Tip: Click a barangay to highlight its border (strong glow).
       </div>
     </div>
 
@@ -465,6 +470,13 @@
       const RISK_ASSET_ID = 4498466;
       const BOUNDARY_ASSET_ID = 4076193;
       const RISK_FIELD = "RiskCls";
+
+      const BORDER_DEFAULT = { width: 2, color: Cesium.Color.WHITE.withAlpha(0.78), glowPower: 0.10 };
+      const BORDER_SELECTED = {
+        width: 8,
+        color: Cesium.Color.fromCssColorString("#00E5FF").withAlpha(0.98),
+        glowPower: 0.55
+      };
 
       const START = {
         destination: Cesium.Cartesian3.fromDegrees(120.7, 16.6, 65000),
@@ -525,7 +537,7 @@
       });
 
       // =========================
-      // SIDEBAR DOCKING
+      // SIDEBAR + DOCKED SEARCH POSITION
       // =========================
       const sidebar = document.getElementById("sidebar");
       const sidebarToggleBtn = document.getElementById("sidebarToggleBtn");
@@ -534,8 +546,10 @@
       function updateSidebarCurrentW(){
         const root = document.getElementById("frost3dApp");
         const css = getComputedStyle(root);
+
         const sidebarW = (css.getPropertyValue("--sidebarW").trim() || "400px");
         const sidebarMin = (css.getPropertyValue("--sidebarMin").trim() || "56px");
+
         const collapsed = sidebar.classList.contains("f3-collapsed");
         root.style.setProperty("--sidebarCurrentW", collapsed ? sidebarMin : sidebarW);
       }
@@ -667,65 +681,50 @@
       }
 
       // =========================
-      // FILL-BASED HIGHLIGHT (no outline needed)
+      // BORDER BUILDER + HIGHLIGHTER
       // =========================
-      let currentSelectedRiskEntity = null;
-      let currentSliderAlpha = 0.65; // updated by slider
-
-      function makeFillMaterial(baseColor, alpha){
-        return new Cesium.ColorMaterialProperty(baseColor.withAlpha(alpha));
+      function makeGlowMaterial(color, glowPower){
+        return new Cesium.PolylineGlowMaterialProperty({ glowPower, color });
       }
 
-      function makeSelectedFillMaterial(baseColor, alpha){
-        const base = baseColor.withAlpha(alpha);
+      function createBorderPolylineForPolygon(polygonEntity){
+        const now = Cesium.JulianDate.now();
+        const hierarchy = polygonEntity?.polygon?.hierarchy?.getValue(now);
+        if (!hierarchy || !hierarchy.positions || hierarchy.positions.length < 2) return null;
 
-        const stripe = new Cesium.StripeMaterialProperty({
-          evenColor: Cesium.Color.fromCssColorString("#00E5FF").withAlpha(0.62),
-          oddColor:  Cesium.Color.fromCssColorString("#00E5FF").withAlpha(0.10),
-          repeat: 20,
-          offset: 0.0,
-          orientation: Cesium.StripeOrientation.DIAGONAL
-        });
+        const positions = hierarchy.positions.slice();
+        positions.push(hierarchy.positions[0]);
 
-        // Compose base + stripes so the risk color is preserved
-        return new Cesium.CompositeMaterialProperty({
-          materials: [
-            { material: new Cesium.ColorMaterialProperty(base), alpha: 1.0 },
-            { material: stripe, alpha: 1.0 }
-          ]
-        });
-      }
-
-      function applyOpacityToAll(riskDS, alpha){
-        currentSliderAlpha = alpha;
-
-        for (const e of riskDS.entities.values){
-          if (!e.polygon) continue;
-
-          if (e === currentSelectedRiskEntity){
-            e.polygon.material = makeSelectedFillMaterial(e._baseRiskColor, alpha);
-          } else {
-            e.polygon.material = makeFillMaterial(e._baseRiskColor, alpha);
+        return viewer.entities.add({
+          polyline: {
+            positions,
+            clampToGround: true,
+            width: BORDER_DEFAULT.width,
+            material: makeGlowMaterial(BORDER_DEFAULT.color, BORDER_DEFAULT.glowPower)
           }
-        }
+        });
       }
 
-      function setSelectedFill(riskDS, entity){
-        if (currentSelectedRiskEntity && currentSelectedRiskEntity.polygon){
-          currentSelectedRiskEntity.polygon.material =
-            makeFillMaterial(currentSelectedRiskEntity._baseRiskColor, currentSliderAlpha);
+      let currentSelectedRiskEntity = null;
+
+      function applyBorderStyle(borderEntity, style){
+        if (!borderEntity?.polyline) return;
+        borderEntity.polyline.width = style.width;
+        borderEntity.polyline.material = makeGlowMaterial(style.color, style.glowPower);
+      }
+
+      function setSelectedBorder(riskEntity){
+        if (currentSelectedRiskEntity?._borderEntity){
+          applyBorderStyle(currentSelectedRiskEntity._borderEntity, BORDER_DEFAULT);
         }
-
-        currentSelectedRiskEntity = entity || null;
-
-        if (currentSelectedRiskEntity && currentSelectedRiskEntity.polygon){
-          currentSelectedRiskEntity.polygon.material =
-            makeSelectedFillMaterial(currentSelectedRiskEntity._baseRiskColor, currentSliderAlpha);
+        currentSelectedRiskEntity = riskEntity || null;
+        if (currentSelectedRiskEntity?._borderEntity){
+          applyBorderStyle(currentSelectedRiskEntity._borderEntity, BORDER_SELECTED);
         }
       }
 
       // =========================
-      // LOADERS
+      // LOAD BOUNDARY + RISK
       // =========================
       async function loadBoundary(){
         const resource = await Cesium.IonResource.fromAssetId(BOUNDARY_ASSET_ID);
@@ -735,7 +734,6 @@
         const now = Cesium.JulianDate.now();
         for (const e of ds.entities.values){
           if (!e.polygon) continue;
-
           e.polygon.material = Cesium.Color.TRANSPARENT;
           e.polygon.outline = false;
 
@@ -772,7 +770,8 @@
 
           e._baseRiskColor = baseRiskColor(riskCls);
           e.polygon.perPositionHeight = false;
-          e.polygon.outline = false;
+
+          e._borderEntity = createBorderPolylineForPolygon(e);
 
           e.name = "";
           e.description = "";
@@ -787,12 +786,19 @@
         const slider = document.getElementById("riskSlider");
         const valueLabel = document.getElementById("riskValue");
 
-        applyOpacityToAll(riskDS, Number(slider.value) / 100);
+        function applyOpacity(alpha){
+          for (const e of riskDS.entities.values){
+            if (!e.polygon) continue;
+            e.polygon.material = new Cesium.ColorMaterialProperty(e._baseRiskColor.withAlpha(alpha));
+          }
+        }
+
+        applyOpacity(Number(slider.value) / 100);
 
         slider.addEventListener("input", () => {
           const pct = Number(slider.value);
           valueLabel.textContent = pct + "%";
-          applyOpacityToAll(riskDS, pct / 100);
+          applyOpacity(pct / 100);
         });
 
         const exagSlider = document.getElementById("exagSlider");
@@ -811,7 +817,6 @@
         const pillEl = document.getElementById("impactRiskPill");
         const impactsEl = document.getElementById("impactList");
         const actionsEl = document.getElementById("actionList");
-
         const riskFieldText = document.getElementById("riskFieldText");
         const riskDataText  = document.getElementById("riskDataText");
         const riskRawText   = document.getElementById("riskRawText");
@@ -825,7 +830,7 @@
           riskFieldText.textContent = RISK_FIELD;
           riskDataText.textContent = "FrostRisk_v1 (Ion)";
           riskRawText.textContent = "—";
-          setSelectedFill(riskDS, null);
+          setSelectedBorder(null);
         }
 
         clearPanel();
@@ -837,8 +842,7 @@
             return;
           }
 
-          // ✅ fill-based highlight
-          setSelectedFill(riskDS, entity);
+          setSelectedBorder(entity);
 
           const now = Cesium.JulianDate.now();
           const barangay = entity.properties?.ADM4_EN?.getValue?.(now) ?? "Unknown barangay";
@@ -868,10 +872,8 @@
         try {
           await loadBoundary();
           const riskDS = await loadRisk();
-
           wireUI(riskDS);
           wireImpactPanel(riskDS);
-
           await viewer.flyTo(riskDS);
         } catch (err){
           console.error("LOAD ERROR:", err);
