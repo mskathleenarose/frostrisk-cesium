@@ -18,8 +18,7 @@
       transform:translateX(-50%);
       z-index:1005;
 
-      /* ✅ short centered bar */
-      width:min(760px, calc(100vw - 24px));
+      width:min(600px, calc(100vw - 24px));
       height:48px;
       border-radius:14px;
 
@@ -95,7 +94,7 @@
     /* ================= LEFT CONTROL PANEL ================= */
     .panel{
       position:absolute;
-      top:68px; /* pushed down under top bar */
+      top:68px;
       left:12px;
       z-index:999;
       background:rgba(255,255,255,0.95);
@@ -128,7 +127,7 @@
       font-size:12px;
     }
 
-    /* ================= SINGLE RIGHT INFO PANEL (SCROLL) ================= */
+    /* ================= RIGHT IMPACT PANEL (SCROLL) ================= */
     .impactPanel{
       position:absolute;
       top:68px;
@@ -252,20 +251,7 @@
       color:#222;
       margin-bottom:6px;
     }
-    .icon{
-      width:22px;
-      height:22px;
-      border-radius:8px;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      font-size:12px;
-      font-weight:900;
-      border:1px solid rgba(0,0,0,0.10);
-      background:rgba(0,0,0,0.03);
-    }
 
-    /* ✅ Emoji / PNG-style icon chip (works with emojis; can swap to <img>) */
     .icoChip{
       display:inline-flex;
       align-items:center;
@@ -335,7 +321,6 @@
         <b>FrostPH Risk Map (3D)</b><br>
         <span class="small">GeoJSON overlay • 3D terrain</span>
       </div>
-
       <button id="toggleBtn" class="btn">Hide</button>
     </div>
 
@@ -366,7 +351,7 @@
     </div>
   </div>
 
-  <!-- ================= SINGLE INFO / IMPACT PANEL (RIGHT) ================= -->
+  <!-- ================= IMPACT PANEL (RIGHT) ================= -->
   <div class="impactPanel" id="impactPanel">
     <div class="impactHeader">
       <div>
@@ -408,30 +393,27 @@
 
         <div class="section">
           <div class="sectionTitle">
-            <span class="icoChip">⚠️</span>
-            <span>Possible impacts</span>
+            <span class="icoChip">⚠️</span><span>Possible impacts</span>
           </div>
           <ul class="impactList" id="impactList"><li>—</li></ul>
         </div>
 
         <div class="section">
           <div class="sectionTitle">
-            <span class="icoChip">✅</span>
-            <span>Recommended actions</span>
+            <span class="icoChip">✅</span><span>Recommended actions</span>
           </div>
           <ul class="impactList" id="actionList"><li>—</li></ul>
         </div>
 
         <div class="section">
           <div class="sectionTitle">
-            <span class="icoChip">📸</span>
-            <span>Insurance & reporting</span>
+            <span class="icoChip">📸</span><span>Insurance & reporting</span>
           </div>
           <ul class="impactList" id="insList">
-            <li>Report crop damage within <b>7 days</b> to MAO/PCIC (if insured).</li>
-            <li>Record farm location + barangay.</li>
-            <li>Take clear photos (before/after) with date/time.</li>
-            <li>Keep notes on affected crop, area, and estimated loss.</li>
+            <li>⏱️ Report crop damage within <b>7 days</b> to MAO/PCIC (if insured).</li>
+            <li>📍 Record farm location + barangay.</li>
+            <li>📷 Take clear photos (before/after) with date/time.</li>
+            <li>📝 Keep notes on affected crop, area, and estimated loss.</li>
           </ul>
         </div>
       </div>
@@ -448,11 +430,12 @@
     // =========================
     const RISK_ASSET_ID = 4498466;         // FrostRisk_v1 (geojson)
     const BOUNDARY_ASSET_ID = 4076193;     // Benguet Municipality (GeoJSON)
-    const RISK_FIELD = "RiskCls";          // risk column
+    const RISK_FIELD = "RiskCls";
 
-    // ✅ thin outline for each barangay polygon from the risk layer
-    const BARANGAY_OUTLINE_WIDTH = 1;      // "thin"
-    const BARANGAY_OUTLINE_COLOR = Cesium.Color.WHITE.withAlpha(0.55);
+    // ✅ Noticeable but thin barangay borders (works even with clampToGround)
+    const BARANGAY_BORDER_WIDTH = 2; // thin, but visible
+    const BARANGAY_BORDER_COLOR = Cesium.Color.WHITE.withAlpha(0.78);
+    const BARANGAY_BORDER_GLOW  = 0.08; // subtle glow to stand out
 
     const START = {
       destination: Cesium.Cartesian3.fromDegrees(120.7, 16.6, 65000),
@@ -496,7 +479,7 @@
     });
 
     // =========================
-    // TOP SEARCH BAR (Cesium GeocoderViewModel)
+    // TOP SEARCH BAR
     // =========================
     const geocoderVM = new Cesium.GeocoderViewModel({ scene: viewer.scene });
 
@@ -521,7 +504,7 @@
     });
 
     // =========================
-    // PANEL TOGGLE (LEFT)
+    // PANEL TOGGLES
     // =========================
     document.getElementById("toggleBtn").addEventListener("click", () => {
       const panel = document.getElementById("controlPanel");
@@ -530,9 +513,6 @@
         panel.classList.contains("collapsed") ? "Show" : "Hide";
     });
 
-    // =========================
-    // PANEL TOGGLE (RIGHT)
-    // =========================
     document.getElementById("impactToggleBtn").addEventListener("click", () => {
       const p = document.getElementById("impactPanel");
       p.classList.toggle("collapsed");
@@ -545,7 +525,6 @@
     // =========================
     function norm(v){ return (v ?? "").toString().trim().toLowerCase(); }
 
-    // Minimal (light green), Mild (true green), Moderate (yellow), Severe (blue)
     function baseRiskColor(levelRaw){
       const raw = (levelRaw ?? "").toString().trim();
       const level = raw.toLowerCase();
@@ -656,7 +635,7 @@
         ],
         actions: [
           "Use row covers/tunnels; prioritize high-value plots.",
-          "Irrigate strategically during frost window (where applicable).",
+          "Irrigate and spray water strategically during frost window (where applicable).",
           "Avoid late-day nitrogen-heavy fertilization before cold nights."
         ]
       },
@@ -684,6 +663,37 @@
       if (raw === "0" || r === "minimal") return "minimal";
 
       return "minimal";
+    }
+
+    // =========================
+    // BORDER BUILDER (per polygon)
+    // Works even when polygons are clampToGround
+    // =========================
+    function addPolygonBorderPolyline(polygonEntity){
+      const now = Cesium.JulianDate.now();
+      if (!polygonEntity?.polygon?.hierarchy) return;
+
+      const hierarchy = polygonEntity.polygon.hierarchy.getValue(now);
+      if (!hierarchy || !hierarchy.positions || hierarchy.positions.length < 2) return;
+
+      // Close the loop so the last point connects to the first
+      const positions = hierarchy.positions.slice();
+      positions.push(hierarchy.positions[0]);
+
+      const borderEntity = viewer.entities.add({
+        polyline: {
+          positions,
+          clampToGround: true,
+          width: BARANGAY_BORDER_WIDTH,
+          material: new Cesium.PolylineGlowMaterialProperty({
+            glowPower: BARANGAY_BORDER_GLOW,
+            color: BARANGAY_BORDER_COLOR
+          })
+        }
+      });
+
+      // keep a reference so you can manage it later if needed
+      polygonEntity._borderEntity = borderEntity;
     }
 
     // =========================
@@ -721,7 +731,7 @@
     }
 
     // =========================
-    // LOAD RISK LAYER (barangay polys + THIN OUTLINE)
+    // LOAD RISK LAYER (barangay polys + borders)
     // =========================
     async function loadRisk(){
       const resource = await Cesium.IonResource.fromAssetId(RISK_ASSET_ID);
@@ -744,9 +754,8 @@
         e.polygon.extrudedHeight = undefined;
         e.polygon.perPositionHeight = false;
 
-        // ✅ thin outline per barangay (from RiskCls geojson)
-        e.polygon.outline = true;
-        e.polygon.outlineColor = BARANGAY_OUTLINE_COLOR;
+        // Important: polygon.outline is unreliable on clampToGround, so use polylines:
+        addPolygonBorderPolyline(e);
 
         // remove Cesium popup strings
         e.name = "";
