@@ -7,114 +7,142 @@
   <script src="https://cesium.com/downloads/cesiumjs/releases/1.116/Build/Cesium/Cesium.js"></script>
   <link href="https://cesium.com/downloads/cesiumjs/releases/1.116/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
 
-  <style>
-    html, body, #cesiumContainer { width:100%; height:100%; margin:0; padding:0; overflow:hidden; }
+  <!-- FrostPH-like font -->
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-    /* ================= TOP SEARCH BAR (SHORT + CENTERED) ================= */
+  <style>
+    :root{
+      --brand:#073763;
+      --brand2:#0b4a8b;
+
+      --bg: rgba(255,255,255,0.96);
+      --line: rgba(7,55,99,0.16);
+      --line2: rgba(0,0,0,0.10);
+      --muted: rgba(11,34,57,.72);
+      --shadow: 0 14px 34px rgba(0,0,0,0.16);
+
+      --sidebarW: 390px;
+      --sidebarMin: 56px;   /* width when hidden */
+      --topOffset: 68px;    /* below search */
+    }
+
+    html, body, #cesiumContainer{
+      width:100%; height:100%;
+      margin:0; padding:0;
+      overflow:hidden;
+      font-family:'Open Sans', Arial, sans-serif;
+    }
+
+    /* ================= TOP SEARCH BAR (CENTERED) ================= */
     .topBar{
       position:absolute; top:10px; left:50%; transform:translateX(-50%);
-      z-index:1005;
+      z-index:1006;
       width:min(600px, calc(100vw - 24px));
       height:40px;
       border-radius:14px;
-      background:rgba(20,27,36,0.92);
-      backdrop-filter: blur(8px);
-      box-shadow:0 12px 30px rgba(0,0,0,0.22);
-      border:1px solid rgba(255,255,255,0.08);
+      background: rgba(7,55,99,0.92);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 26px rgba(0,0,0,0.18);
+      border: 1px solid rgba(255,255,255,0.10);
       display:flex; align-items:center; gap:10px;
       padding:8px 10px;
-      font-family: Arial, sans-serif; color:#fff;
+      color:#fff;
     }
     .brand{
       display:flex; align-items:center; gap:8px;
-      padding:5px 9px; border-radius:12px;
-      background:rgba(255,255,255,0.06);
-      border:1px solid rgba(255,255,255,0.08);
+      padding:6px 10px; border-radius:12px;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.14);
       font-weight:900; letter-spacing:.3px; white-space:nowrap;
     }
     .brand .flake{ font-size:16px; line-height:1; }
-    .brand .name{ font-size:16px; }
-    .brand .name span{ opacity:0.9; font-weight:900; }
+    .brand .name{ font-size:15px; }
+    .brand .name span{ opacity:0.95; font-weight:900; }
+
     .searchWrap{
       flex:1; height:34px; border-radius:999px;
-      background:rgba(255,255,255,0.06);
-      border:1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.10);
+      border:1px solid rgba(255,255,255,0.16);
       display:flex; align-items:center; padding:0 12px; gap:8px;
     }
-    .searchIcon{ width:16px; height:16px; opacity:0.9; flex:0 0 auto; }
+    .searchIcon{ width:16px; height:16px; opacity:0.95; flex:0 0 auto; }
     .searchInput{
       flex:1; height:100%;
       border:none; outline:none;
       background:transparent; color:#fff;
-      font-size:14px; font-weight:700;
+      font-size:13.5px; font-weight:700;
+      letter-spacing: .1px;
     }
-    .searchInput::placeholder{ color: rgba(255,255,255,0.72); font-weight:600; }
+    .searchInput::placeholder{ color: rgba(255,255,255,0.78); font-weight:600; }
     .goBtn{
       width:38px; height:34px;
       border:none; border-radius:999px;
-      background:rgba(255,255,255,0.10);
-      border:1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.16);
+      border:1px solid rgba(255,255,255,0.18);
       cursor:pointer;
       display:flex; align-items:center; justify-content:center;
     }
-    .goBtn:hover{ background:rgba(255,255,255,0.16); }
-    .goIcon{ width:16px; height:16px; opacity:0.92; }
+    .goBtn:hover{ background: rgba(255,255,255,0.22); }
+    .goIcon{ width:16px; height:16px; opacity:0.95; }
 
-    /* ================= LEFT SIDEBAR WINDOW (SLIDE/HIDE) ================= */
-    :root{
-      --sidebarW: 360px;
-      --sidebarTop: 68px;
-      --sidebarPad: 12px;
-      --brand1: rgba(11,74,139,1);
-      --brand2: rgba(7,55,99,1);
-    }
-
+    /* ================= LEFT SIDEBAR WINDOW (SPLIT + DIVIDER) ================= */
     .sidebar{
       position:absolute;
-      top: var(--sidebarTop);
-      left: 12px;
-      z-index: 1004;
+      top: var(--topOffset);
+      left: 0;
+      z-index: 1005;
 
       width: var(--sidebarW);
-      max-width: calc(100vw - 24px);
-      max-height: calc(100vh - 80px);
+      height: calc(100vh - (var(--topOffset) + 12px));
+      background: var(--bg);
+      box-shadow: var(--shadow);
 
-      background: rgba(255,255,255,0.96);
-      border: 1px solid rgba(0,0,0,0.10);
-      border-radius: 16px;
-      box-shadow: 0 14px 34px rgba(0,0,0,0.22);
-      backdrop-filter: blur(8px);
+      border-top-right-radius: 18px;
+      border-bottom-right-radius: 18px;
 
+      border-right: 1px solid var(--line2);
       display:flex;
       flex-direction: column;
-      overflow: hidden;
+      overflow:hidden;
 
       transform: translateX(0);
-      transition: transform .22s ease, opacity .22s ease;
+      transition: transform .22s ease, width .22s ease;
     }
 
-    /* Collapsed: slide out to the left, leaving a small tab visible */
+    /* “Hidden to the left”, leaving a slim strip with handle visible */
     .sidebar.collapsed{
-      transform: translateX(calc(-1 * var(--sidebarW) + 44px));
-      opacity: 0.98;
+      transform: translateX(calc(-1 * (var(--sidebarW) - var(--sidebarMin))));
     }
 
-    /* Header bar */
+    /* Header like FrostPH cards */
     .sideHeader{
-      padding: 12px 12px 10px;
-      background: linear-gradient(135deg, var(--brand1), var(--brand2));
-      color: #fff;
+      padding: 12px 14px 10px;
+      background: linear-gradient(135deg, var(--brand2), var(--brand));
+      color:#fff;
       display:flex;
       align-items:flex-start;
       justify-content: space-between;
       gap: 10px;
       flex: 0 0 auto;
+      border-bottom: 1px solid rgba(255,255,255,0.12);
     }
-    .sideHeader b{ font-size:14px; letter-spacing:.2px; }
-    .sideHeader .sub{ font-size:12px; opacity:.92; margin-top:2px; }
+    .sideHeader b{
+      font-size:14px;
+      letter-spacing:.2px;
+      font-weight: 800;
+    }
+    .sideHeader .sub{
+      font-size:12px;
+      opacity:.92;
+      margin-top:2px;
+      line-height: 1.25;
+    }
 
-    /* Header buttons */
-    .sideHeaderBtns{ display:flex; align-items:center; gap:8px; }
+    .sideHeaderBtns{
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
     .sideBtn{
       border:none;
       background: rgba(255,255,255,0.18);
@@ -122,49 +150,51 @@
       padding: 6px 10px;
       border-radius: 10px;
       cursor:pointer;
-      font-weight:900;
+      font-weight:800;
       font-size:12px;
       user-select:none;
     }
     .sideBtn:hover{ background: rgba(255,255,255,0.24); }
 
-    /* Body scroll */
     .sideBody{
-      padding: 12px;
+      padding: 12px 14px;
       overflow-y: auto;
       flex: 1 1 auto;
+      color:#111;
     }
 
-    /* Sections */
     .sectionBlock{
       border:1px solid rgba(0,0,0,0.08);
-      border-radius:14px;
+      border-radius:16px;
       padding:12px;
       background:#fff;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.05);
     }
+
     .row{ margin-top:10px; }
-    input[type="range"]{ width: 100%; }
+    input[type="range"]{ width:100%; }
+
+    .small{ color: rgba(0,0,0,0.62); font-size:12px; }
+    .muted{ color: var(--muted); font-size:12px; }
 
     .legend{ margin-top:10px; line-height:1.75; }
     .swatch{ display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:6px; vertical-align:middle; }
-    .small{ color:#444; font-size:12px; }
-    .muted{ color:#666; font-size:12px; }
 
-    .placeTitle{ font-size:18px; font-weight:900; margin:0 0 2px; color:#111; }
+    .placeTitle{ font-size:18px; font-weight:800; margin:0 0 2px; color:#0b2239; }
 
     .grid2{
       display:grid; grid-template-columns: 1fr auto;
       gap:10px; align-items:center;
       margin-top:10px; padding:10px;
-      border-radius:12px;
-      background:rgba(11,74,139,0.04);
-      border:1px solid rgba(11,74,139,0.12);
+      border-radius:14px;
+      background: rgba(11,74,139,0.05);
+      border:1px solid rgba(11,74,139,0.14);
     }
 
     .pill{
       display:inline-flex; align-items:center; gap:6px;
       padding:6px 10px; border-radius:999px;
-      font-weight:900; font-size:12px;
+      font-weight:800; font-size:12px;
       border:1px solid rgba(0,0,0,0.08);
       user-select:none; white-space:nowrap;
     }
@@ -175,11 +205,11 @@
       margin-top:10px; padding-top:10px;
       border-top:1px dashed rgba(0,0,0,0.15);
     }
-    .miniMeta b{ font-size:11px; letter-spacing:.25px; color:#333; }
+    .miniMeta b{ font-size:11px; letter-spacing:.25px; color:#333; font-weight:800; }
     .miniMeta .muted{ font-size:12px; }
 
     .section{ margin-top:12px; }
-    .sectionTitle{ display:flex; align-items:center; gap:8px; font-weight:900; color:#222; margin-bottom:6px; }
+    .sectionTitle{ display:flex; align-items:center; gap:8px; font-weight:800; color:#0b2239; margin-bottom:6px; }
     .icoChip{
       display:inline-flex; align-items:center; justify-content:center;
       width:26px; height:26px; border-radius:10px;
@@ -187,42 +217,56 @@
       background:rgba(0,0,0,0.03);
       font-size:16px; line-height:1; flex:0 0 auto;
     }
-    .impactList{ margin:0; padding-left:18px; color:#333; line-height:1.5; }
+    .impactList{ margin:0; padding-left:18px; color:#223; line-height:1.5; }
     .impactList li{ margin:4px 0; }
 
     .sideFooter{
-      padding:10px 12px;
+      padding:10px 14px;
       border-top:1px solid rgba(0,0,0,0.08);
       font-size:12px;
-      color:#555;
-      background:rgba(0,0,0,0.02);
+      color: rgba(0,0,0,0.62);
+      background: rgba(0,0,0,0.02);
       flex:0 0 auto;
     }
 
-    /* little "tab" hint when collapsed */
-    .collapseHint{
+    /* ===== Divider handle (the “split” feel) ===== */
+    .dividerHandle{
       position:absolute;
-      top: calc(var(--sidebarTop) + 10px);
-      left: 12px;
-      z-index: 1005;
-      width: 40px;
-      height: 52px;
-      border-radius: 14px;
-      background: rgba(20,27,36,0.88);
-      border: 1px solid rgba(255,255,255,0.10);
-      box-shadow: 0 12px 30px rgba(0,0,0,0.22);
-      display:none;
+      top: 0;
+      right: -10px;   /* overlap map side slightly */
+      height: 100%;
+      width: 20px;
+      cursor: pointer;
+      z-index: 1006;
+      display:flex;
       align-items:center;
       justify-content:center;
-      color:#fff;
-      cursor:pointer;
-      user-select:none;
-      backdrop-filter: blur(8px);
     }
-    .collapseHint span{ font-size:18px; opacity:.95; }
-    /* show hint only when sidebar is collapsed */
-    .sidebar.collapsed ~ .collapseHint{ display:flex; }
+    .dividerPill{
+      width: 10px;
+      height: 78px;
+      border-radius: 999px;
+      background: rgba(7,55,99,0.20);
+      border: 1px solid rgba(7,55,99,0.22);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.10);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      backdrop-filter: blur(6px);
+      user-select:none;
+    }
+    .dividerPill span{
+      font-size: 14px;
+      font-weight: 900;
+      color: rgba(7,55,99,0.85);
+      transform: translateX(0);
+      line-height: 1;
+    }
+    .sidebar.collapsed .dividerPill span{
+      transform: rotate(180deg);
+    }
 
+    /* Cesium credits */
     .cesium-widget-credits{ right:12px !important; bottom:6px !important; }
   </style>
 </head>
@@ -239,16 +283,16 @@
 
     <div class="searchWrap">
       <svg class="searchIcon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="white" stroke-opacity=".85" stroke-width="2"/>
-        <path d="M16.5 16.5 21 21" stroke="white" stroke-opacity=".85" stroke-width="2" stroke-linecap="round"/>
+        <path d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="white" stroke-opacity=".88" stroke-width="2"/>
+        <path d="M16.5 16.5 21 21" stroke="white" stroke-opacity=".88" stroke-width="2" stroke-linecap="round"/>
       </svg>
 
       <input id="searchInput" class="searchInput" placeholder="Search place (e.g., Atok, Benguet)" />
 
       <button id="searchBtn" class="goBtn" title="Search">
         <svg class="goIcon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M5 12h12" stroke="white" stroke-opacity=".9" stroke-width="2" stroke-linecap="round"/>
-          <path d="M13 6l6 6-6 6" stroke="white" stroke-opacity=".9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M5 12h12" stroke="white" stroke-opacity=".92" stroke-width="2" stroke-linecap="round"/>
+          <path d="M13 6l6 6-6 6" stroke="white" stroke-opacity=".92" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
     </div>
@@ -256,10 +300,15 @@
 
   <!-- ================= LEFT SIDEBAR WINDOW ================= -->
   <div class="sidebar" id="sidebar">
+    <!-- Divider handle (click to hide/show) -->
+    <div class="dividerHandle" id="dividerHandle" title="Hide/Show sidebar">
+      <div class="dividerPill"><span>❮</span></div>
+    </div>
+
     <div class="sideHeader">
       <div>
         <b>FrostPH Risk Map (3D)</b>
-        <div class="sub">Search • Controls • Impact Guide (Click a barangay)</div>
+        <div class="sub">Controls + Impact Guide • Click a barangay polygon</div>
       </div>
       <div class="sideHeaderBtns">
         <button class="sideBtn" id="sidebarToggleBtn">Hide</button>
@@ -269,7 +318,7 @@
     <div class="sideBody">
       <!-- Controls -->
       <div class="sectionBlock">
-        <div style="font-weight:900; color:#111;">Map controls</div>
+        <div style="font-weight:800; color:#0b2239;">Map controls</div>
         <div class="small" style="margin-top:4px;">
           drag rotate • right-drag/Ctrl-drag pan • scroll zoom • tilt in 3D
         </div>
@@ -302,7 +351,7 @@
 
         <div class="grid2">
           <div>
-            <div style="font-weight:900; color:#222;">Frost Risk Level</div>
+            <div style="font-weight:800; color:#0b2239;">Frost Risk Level</div>
             <div class="muted" style="margin-top:2px;">Interpretation for farmers</div>
           </div>
           <div id="impactRiskPill"></div>
@@ -350,11 +399,6 @@
     </div>
   </div>
 
-  <!-- small tab button that appears when sidebar is hidden -->
-  <div class="collapseHint" id="collapseHint" title="Show panel">
-    <span>❯</span>
-  </div>
-
   <script>
     // =========================
     // CONFIG
@@ -363,19 +407,8 @@
     const BOUNDARY_ASSET_ID = 4076193;     // Benguet Municipality (GeoJSON)
     const RISK_FIELD = "RiskCls";
 
-    // Default barangay border (thin but visible)
-    const BORDER_DEFAULT = {
-      width: 2,
-      color: Cesium.Color.WHITE.withAlpha(0.78),
-      glowPower: 0.08
-    };
-
-    // Selected barangay border (highlight/glow)
-    const BORDER_SELECTED = {
-      width: 4,
-      color: Cesium.Color.WHITE.withAlpha(0.98),
-      glowPower: 0.22
-    };
+    const BORDER_DEFAULT = { width: 2, color: Cesium.Color.WHITE.withAlpha(0.78), glowPower: 0.08 };
+    const BORDER_SELECTED = { width: 4, color: Cesium.Color.WHITE.withAlpha(0.98), glowPower: 0.22 };
 
     const START = {
       destination: Cesium.Cartesian3.fromDegrees(120.7, 16.6, 65000),
@@ -437,31 +470,28 @@
     });
 
     // =========================
-    // SIDEBAR TOGGLE (SLIDE LEFT)
+    // SIDEBAR HIDE/SHOW (DIVIDER + BUTTON)
     // =========================
     const sidebar = document.getElementById("sidebar");
     const sidebarToggleBtn = document.getElementById("sidebarToggleBtn");
-    const collapseHint = document.getElementById("collapseHint");
+    const dividerHandle = document.getElementById("dividerHandle");
 
     function setSidebarCollapsed(collapsed){
       sidebar.classList.toggle("collapsed", collapsed);
       sidebarToggleBtn.textContent = collapsed ? "Show" : "Hide";
-      collapseHint.innerHTML = collapsed ? "<span>❯</span>" : "<span>❮</span>";
+      // Divider arrow flips via CSS on .collapsed
     }
 
     sidebarToggleBtn.addEventListener("click", () => {
       setSidebarCollapsed(!sidebar.classList.contains("collapsed"));
     });
-
-    collapseHint.addEventListener("click", () => {
-      setSidebarCollapsed(false);
+    dividerHandle.addEventListener("click", () => {
+      setSidebarCollapsed(!sidebar.classList.contains("collapsed"));
     });
 
-    // Optional: press "P" to toggle panel quickly
+    // Optional hotkey: P to toggle
     window.addEventListener("keydown", (e) => {
-      if (e.key.toLowerCase() === "p") {
-        setSidebarCollapsed(!sidebar.classList.contains("collapsed"));
-      }
+      if (e.key.toLowerCase() === "p") setSidebarCollapsed(!sidebar.classList.contains("collapsed"));
     });
 
     // =========================
@@ -575,7 +605,7 @@
       const positions = hierarchy.positions.slice();
       positions.push(hierarchy.positions[0]); // close loop
 
-      const border = viewer.entities.add({
+      return viewer.entities.add({
         polyline: {
           positions,
           clampToGround: true,
@@ -583,8 +613,6 @@
           material: makeGlowMaterial(BORDER_DEFAULT.color, BORDER_DEFAULT.glowPower)
         }
       });
-
-      return border;
     }
 
     let currentSelectedRiskEntity = null;
@@ -596,19 +624,17 @@
     }
 
     function setSelectedBorder(riskEntity){
-      // reset previous
       if (currentSelectedRiskEntity?._borderEntity){
         applyBorderStyle(currentSelectedRiskEntity._borderEntity, BORDER_DEFAULT);
       }
       currentSelectedRiskEntity = riskEntity || null;
-      // apply selected
       if (currentSelectedRiskEntity?._borderEntity){
         applyBorderStyle(currentSelectedRiskEntity._borderEntity, BORDER_SELECTED);
       }
     }
 
     // =========================
-    // LOAD BOUNDARY (municipality outline)
+    // LOAD BOUNDARY
     // =========================
     async function loadBoundary(){
       const resource = await Cesium.IonResource.fromAssetId(BOUNDARY_ASSET_ID);
@@ -642,7 +668,7 @@
     }
 
     // =========================
-    // LOAD RISK LAYER (barangay polys + borders)
+    // LOAD RISK LAYER
     // =========================
     async function loadRisk(){
       const resource = await Cesium.IonResource.fromAssetId(RISK_ASSET_ID);
@@ -665,7 +691,6 @@
         e.polygon.extrudedHeight = undefined;
         e.polygon.perPositionHeight = false;
 
-        // create border polyline per barangay and store reference
         e._borderEntity = createBorderPolylineForPolygon(e);
 
         e.name = "";
@@ -708,7 +733,7 @@
     }
 
     // =========================
-    // IMPACT PANEL WIRING (+ border highlight on click)
+    // IMPACT WIRING (+ border highlight)
     // =========================
     function wireImpactPanel(riskDS){
       const placeEl = document.getElementById("impactPlace");
@@ -746,7 +771,6 @@
         setSelectedBorder(entity);
 
         const now = Cesium.JulianDate.now();
-
         const barangay = entity.properties?.ADM4_EN?.getValue?.(now) ?? "Unknown barangay";
         const municipality = entity.properties?.ADM3_EN?.getValue?.(now) ?? "Unknown municipality";
         const riskCls = entity.properties?.[RISK_FIELD]?.getValue?.(now) ?? "Minimal";
