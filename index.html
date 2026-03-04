@@ -679,22 +679,10 @@
       }
 
       // =========================
-      // BORDER BUILDER + HIGHLIGHTER (VISIBLE EVEN AT 100% OPACITY)
+      // BORDER BUILDER + HIGHLIGHTER (GROUND-CLAMPED + ALWAYS VISIBLE)
       // =========================
       function makeGlowMaterial(color, glowPower){
         return new Cesium.PolylineGlowMaterialProperty({ glowPower, color });
-      }
-
-      // raise border slightly above polygon to avoid z-fighting
-      function elevatePositions(positions, meters){
-        if (!positions || positions.length < 2) return positions;
-        const out = [];
-        for (const p of positions){
-          const c = Cesium.Cartographic.fromCartesian(p);
-          c.height = (c.height || 0) + meters;
-          out.push(Cesium.Cartesian3.fromRadians(c.longitude, c.latitude, c.height));
-        }
-        return out;
       }
 
       function createBorderPolylineForPolygon(polygonEntity){
@@ -702,49 +690,44 @@
         const hierarchy = polygonEntity?.polygon?.hierarchy?.getValue(now);
         if (!hierarchy || !hierarchy.positions || hierarchy.positions.length < 2) return null;
 
-        const base = hierarchy.positions.slice();
-        base.push(hierarchy.positions[0]); // close loop
-
-        // ✅ lift border so it sits above the fill even at opacity=100
-        const raised = elevatePositions(base, 12);
+        const positions = hierarchy.positions.slice();
+        positions.push(hierarchy.positions[0]); // close loop
 
         return viewer.entities.add({
           polyline: {
-            positions: raised,
-            clampToGround: false, // ✅ important
+            positions,
+            clampToGround: true, // ✅ follows terrain
             width: BORDER_DEFAULT.width,
             material: makeGlowMaterial(BORDER_DEFAULT.color, BORDER_DEFAULT.glowPower),
-
-            // ✅ still visible if depth says "behind"
             depthFailMaterial: makeGlowMaterial(
-              Cesium.Color.WHITE.withAlpha(0.95),
-              Math.max(BORDER_DEFAULT.glowPower, 0.18)
-            )
+              Cesium.Color.WHITE.withAlpha(0.98),
+              Math.max(BORDER_DEFAULT.glowPower, 0.20)
+            ),
+            zIndex: 10
           }
         });
       }
 
       let currentSelectedRiskEntity = null;
 
-      function applyBorderStyle(borderEntity, style){
+      function applyBorderStyle(borderEntity, style, z){
         if (!borderEntity?.polyline) return;
         borderEntity.polyline.width = style.width;
         borderEntity.polyline.material = makeGlowMaterial(style.color, style.glowPower);
-
-        // keep depth-fail bright too
         borderEntity.polyline.depthFailMaterial = makeGlowMaterial(
           style.color.withAlpha(0.98),
-          Math.max(style.glowPower, 0.25)
+          Math.max(style.glowPower, 0.28)
         );
+        borderEntity.polyline.zIndex = z ?? 10;
       }
 
       function setSelectedBorder(riskEntity){
         if (currentSelectedRiskEntity?._borderEntity){
-          applyBorderStyle(currentSelectedRiskEntity._borderEntity, BORDER_DEFAULT);
+          applyBorderStyle(currentSelectedRiskEntity._borderEntity, BORDER_DEFAULT, 10);
         }
         currentSelectedRiskEntity = riskEntity || null;
         if (currentSelectedRiskEntity?._borderEntity){
-          applyBorderStyle(currentSelectedRiskEntity._borderEntity, BORDER_SELECTED);
+          applyBorderStyle(currentSelectedRiskEntity._borderEntity, BORDER_SELECTED, 999);
         }
       }
 
@@ -795,8 +778,8 @@
 
           e._baseRiskColor = baseRiskColor(riskCls);
           e.polygon.perPositionHeight = false;
+          e.polygon.outline = false;
 
-          // ✅ border made "above" the polygon so it stays visible at 100% opacity
           e._borderEntity = createBorderPolylineForPolygon(e);
 
           e.name = "";
@@ -806,20 +789,38 @@
       }
 
       // =========================
-      // UI WIRING
+      // UI WIRING (opacity + exaggeration + ensure glow visible at 100%)
       // =========================
       function wireUI(riskDS){
         const slider = document.getElementById("riskSlider");
         const valueLabel = document.getElementById("riskValue");
+        let currentRiskAlpha = Number(slider.value) / 100;
 
-        function applyOpacity(alpha){
-          for (const e of riskDS.entities.values){
-            if (!e.polygon) continue;
-            e.polygon.material = new Cesium.ColorMaterialProperty(e._baseRiskColor.withAlpha(alpha));
-          }
+        function setPolygonAlpha(entity, alpha){
+          if (!entity?.polygon) return;
+          entity.polygon.material = new Cesium.ColorMaterialProperty(entity._baseRiskColor.withAlpha(alpha));
         }
 
-        applyOpacity(Number(slider.value) / 100);
+        function updateSelectedPolygonDim(){
+          if (!currentSelectedRiskEntity?.polygon) return;
+          const a = currentRiskAlpha;
+          const dimAlpha = (a >= 0.98) ? 0.88 : a; // ✅ only dims at ~100%
+          setPolygonAlpha(currentSelectedRiskEntity, dimAlpha);
+        }
+
+        // expose for wireImpactPanel
+        window.updateSelectedPolygonDim = updateSelectedPolygonDim;
+
+        function applyOpacity(alpha){
+          currentRiskAlpha = alpha;
+          for (const e of riskDS.entities.values){
+            if (!e.polygon) continue;
+            setPolygonAlpha(e, alpha);
+          }
+          updateSelectedPolygonDim();
+        }
+
+        applyOpacity(currentRiskAlpha);
 
         slider.addEventListener("input", () => {
           const pct = Number(slider.value);
@@ -857,6 +858,7 @@
           riskDataText.textContent = "FrostRisk_v1 (Ion)";
           riskRawText.textContent = "—";
           setSelectedBorder(null);
+          if (typeof window.updateSelectedPolygonDim === "function") window.updateSelectedPolygonDim();
         }
 
         clearPanel();
@@ -869,6 +871,7 @@
           }
 
           setSelectedBorder(entity);
+          if (typeof window.updateSelectedPolygonDim === "function") window.updateSelectedPolygonDim();
 
           const now = Cesium.JulianDate.now();
           const barangay = entity.properties?.ADM4_EN?.getValue?.(now) ?? "Unknown barangay";
