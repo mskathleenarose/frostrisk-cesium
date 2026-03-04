@@ -60,69 +60,98 @@
     .goBtn:hover{ background:rgba(255,255,255,0.16); }
     .goIcon{ width:16px; height:16px; opacity:0.92; }
 
-    /* ================= LEFT CONTROL PANEL ================= */
-    .panel{
-      position:absolute; top:68px; left:12px; z-index:999;
-      background:rgba(255,255,255,0.95);
-      padding:10px 12px;
-      border-radius:12px;
-      font-family:Arial,sans-serif;
-      font-size:13px;
-      box-shadow:0 10px 26px rgba(0,0,0,0.18);
-      min-width:290px;
-      transition:all .2s ease;
-      border:1px solid rgba(0,0,0,0.10);
-      backdrop-filter: blur(6px);
+    /* ================= LEFT SIDEBAR WINDOW (SLIDE/HIDE) ================= */
+    :root{
+      --sidebarW: 360px;
+      --sidebarTop: 68px;
+      --sidebarPad: 12px;
+      --brand1: rgba(11,74,139,1);
+      --brand2: rgba(7,55,99,1);
     }
-    .panel.collapsed #panelContent{ display:none; }
+
+    .sidebar{
+      position:absolute;
+      top: var(--sidebarTop);
+      left: 12px;
+      z-index: 1004;
+
+      width: var(--sidebarW);
+      max-width: calc(100vw - 24px);
+      max-height: calc(100vh - 80px);
+
+      background: rgba(255,255,255,0.96);
+      border: 1px solid rgba(0,0,0,0.10);
+      border-radius: 16px;
+      box-shadow: 0 14px 34px rgba(0,0,0,0.22);
+      backdrop-filter: blur(8px);
+
+      display:flex;
+      flex-direction: column;
+      overflow: hidden;
+
+      transform: translateX(0);
+      transition: transform .22s ease, opacity .22s ease;
+    }
+
+    /* Collapsed: slide out to the left, leaving a small tab visible */
+    .sidebar.collapsed{
+      transform: translateX(calc(-1 * var(--sidebarW) + 44px));
+      opacity: 0.98;
+    }
+
+    /* Header bar */
+    .sideHeader{
+      padding: 12px 12px 10px;
+      background: linear-gradient(135deg, var(--brand1), var(--brand2));
+      color: #fff;
+      display:flex;
+      align-items:flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      flex: 0 0 auto;
+    }
+    .sideHeader b{ font-size:14px; letter-spacing:.2px; }
+    .sideHeader .sub{ font-size:12px; opacity:.92; margin-top:2px; }
+
+    /* Header buttons */
+    .sideHeaderBtns{ display:flex; align-items:center; gap:8px; }
+    .sideBtn{
+      border:none;
+      background: rgba(255,255,255,0.18);
+      color:#fff;
+      padding: 6px 10px;
+      border-radius: 10px;
+      cursor:pointer;
+      font-weight:900;
+      font-size:12px;
+      user-select:none;
+    }
+    .sideBtn:hover{ background: rgba(255,255,255,0.24); }
+
+    /* Body scroll */
+    .sideBody{
+      padding: 12px;
+      overflow-y: auto;
+      flex: 1 1 auto;
+    }
+
+    /* Sections */
+    .sectionBlock{
+      border:1px solid rgba(0,0,0,0.08);
+      border-radius:14px;
+      padding:12px;
+      background:#fff;
+    }
     .row{ margin-top:10px; }
-    input[type="range"]{ width:240px; }
+    input[type="range"]{ width: 100%; }
+
     .legend{ margin-top:10px; line-height:1.75; }
     .swatch{ display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:6px; vertical-align:middle; }
     .small{ color:#444; font-size:12px; }
-    .btn{
-      border:none; background:#0b4a8b; color:white;
-      padding:6px 10px; border-radius:10px; cursor:pointer;
-      font-weight:800; font-size:12px;
-    }
-
-    /* ================= RIGHT IMPACT PANEL (SCROLL) ================= */
-    .impactPanel{
-      position:absolute; top:68px; right:12px; z-index:999;
-      width:380px; max-width: calc(100vw - 24px);
-      background:rgba(255,255,255,0.96);
-      border-radius:16px;
-      box-shadow:0 14px 34px rgba(0,0,0,0.22);
-      font-family:Arial,sans-serif;
-      overflow:hidden;
-      border:1px solid rgba(0,0,0,0.10);
-      backdrop-filter: blur(8px);
-      transition: transform .18s ease, opacity .18s ease;
-      max-height: calc(100vh - 80px);
-      display:flex; flex-direction:column;
-    }
-    .impactPanel.collapsed{ transform: translateY(-6px); opacity:0.96; }
-    .impactPanel.collapsed .impactBody,
-    .impactPanel.collapsed .impactFooter{ display:none; }
-    .impactHeader{
-      padding:12px 12px 10px;
-      background: linear-gradient(135deg, rgba(11,74,139,1), rgba(7,55,99,1));
-      color:#fff;
-      display:flex; justify-content:space-between; align-items:flex-start; gap:10px;
-      flex:0 0 auto;
-    }
-    .impactHeader b{ font-size:14px; letter-spacing:.2px; }
-    .impactHeader .sub{ font-size:12px; opacity:0.92; margin-top:2px; }
-    .impactHeaderBtns{ display:flex; align-items:center; gap:8px; }
-    .impactBtn{
-      border:none; background:rgba(255,255,255,0.18); color:#fff;
-      padding:6px 10px; border-radius:10px; cursor:pointer;
-      font-weight:900; font-size:12px;
-    }
-    .impactBody{ padding:12px; overflow-y:auto; flex:1 1 auto; }
-    .impactCard{ border:1px solid rgba(0,0,0,0.08); border-radius:14px; padding:12px; background:#fff; }
-    .placeTitle{ font-size:18px; font-weight:900; margin:0 0 2px; color:#111; }
     .muted{ color:#666; font-size:12px; }
+
+    .placeTitle{ font-size:18px; font-weight:900; margin:0 0 2px; color:#111; }
+
     .grid2{
       display:grid; grid-template-columns: 1fr auto;
       gap:10px; align-items:center;
@@ -131,6 +160,7 @@
       background:rgba(11,74,139,0.04);
       border:1px solid rgba(11,74,139,0.12);
     }
+
     .pill{
       display:inline-flex; align-items:center; gap:6px;
       padding:6px 10px; border-radius:999px;
@@ -139,6 +169,7 @@
       user-select:none; white-space:nowrap;
     }
     .pillDot{ width:8px; height:8px; border-radius:50%; display:inline-block; opacity:.9; }
+
     .miniMeta{
       display:flex; justify-content:space-between; gap:10px;
       margin-top:10px; padding-top:10px;
@@ -146,6 +177,7 @@
     }
     .miniMeta b{ font-size:11px; letter-spacing:.25px; color:#333; }
     .miniMeta .muted{ font-size:12px; }
+
     .section{ margin-top:12px; }
     .sectionTitle{ display:flex; align-items:center; gap:8px; font-weight:900; color:#222; margin-bottom:6px; }
     .icoChip{
@@ -157,11 +189,39 @@
     }
     .impactList{ margin:0; padding-left:18px; color:#333; line-height:1.5; }
     .impactList li{ margin:4px 0; }
-    .impactFooter{
-      padding:10px 12px; border-top:1px solid rgba(0,0,0,0.08);
-      font-size:12px; color:#555; background:rgba(0,0,0,0.02);
+
+    .sideFooter{
+      padding:10px 12px;
+      border-top:1px solid rgba(0,0,0,0.08);
+      font-size:12px;
+      color:#555;
+      background:rgba(0,0,0,0.02);
       flex:0 0 auto;
     }
+
+    /* little "tab" hint when collapsed */
+    .collapseHint{
+      position:absolute;
+      top: calc(var(--sidebarTop) + 10px);
+      left: 12px;
+      z-index: 1005;
+      width: 40px;
+      height: 52px;
+      border-radius: 14px;
+      background: rgba(20,27,36,0.88);
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.22);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      color:#fff;
+      cursor:pointer;
+      user-select:none;
+      backdrop-filter: blur(8px);
+    }
+    .collapseHint span{ font-size:18px; opacity:.95; }
+    /* show hint only when sidebar is collapsed */
+    .sidebar.collapsed ~ .collapseHint{ display:flex; }
 
     .cesium-widget-credits{ right:12px !important; bottom:6px !important; }
   </style>
@@ -194,57 +254,49 @@
     </div>
   </div>
 
-  <!-- ================= CONTROL PANEL (LEFT) ================= -->
-  <div class="panel" id="controlPanel">
-    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+  <!-- ================= LEFT SIDEBAR WINDOW ================= -->
+  <div class="sidebar" id="sidebar">
+    <div class="sideHeader">
       <div>
-        <b>FrostPH Risk Map (3D)</b><br>
-        <span class="small">GeoJSON overlay • 3D terrain</span>
+        <b>FrostPH Risk Map (3D)</b>
+        <div class="sub">Search • Controls • Impact Guide (Click a barangay)</div>
       </div>
-      <button id="toggleBtn" class="btn">Hide</button>
-    </div>
-
-    <div id="panelContent">
-      <div class="row">
-        <b>Risk overlay opacity</b><br>
-        <input id="riskSlider" type="range" min="0" max="100" value="65">
-        <div>Opacity: <span id="riskValue">65%</span></div>
-      </div>
-
-      <div class="row">
-        <b>Terrain exaggeration</b><br>
-        <input id="exagSlider" type="range" min="100" max="250" value="160">
-        <div>Exaggeration: <span id="exagValue">1.60×</span></div>
-      </div>
-
-      <div class="legend">
-        <b>Legend</b><br>
-        <span class="swatch" style="background:#a5d6a7"></span>Minimal<br>
-        <span class="swatch" style="background:#2e7d32"></span>Mild<br>
-        <span class="swatch" style="background:#feef01"></span>Moderate<br>
-        <span class="swatch" style="background:#1565c0"></span>Severe
-      </div>
-
-      <div class="small" style="margin-top:10px;">
-        Controls: drag to rotate • right-drag/Ctrl-drag to pan • scroll to zoom • tilt in 3D
-      </div>
-    </div>
-  </div>
-
-  <!-- ================= IMPACT PANEL (RIGHT) ================= -->
-  <div class="impactPanel" id="impactPanel">
-    <div class="impactHeader">
-      <div>
-        <b>Impact Guide</b>
-        <div class="sub">Click a barangay to view impacts & actions</div>
-      </div>
-      <div class="impactHeaderBtns">
-        <button class="impactBtn" id="impactToggleBtn">Hide</button>
+      <div class="sideHeaderBtns">
+        <button class="sideBtn" id="sidebarToggleBtn">Hide</button>
       </div>
     </div>
 
-    <div class="impactBody">
-      <div class="impactCard">
+    <div class="sideBody">
+      <!-- Controls -->
+      <div class="sectionBlock">
+        <div style="font-weight:900; color:#111;">Map controls</div>
+        <div class="small" style="margin-top:4px;">
+          drag rotate • right-drag/Ctrl-drag pan • scroll zoom • tilt in 3D
+        </div>
+
+        <div class="row">
+          <b>Risk overlay opacity</b><br>
+          <input id="riskSlider" type="range" min="0" max="100" value="65">
+          <div class="small">Opacity: <span id="riskValue">65%</span></div>
+        </div>
+
+        <div class="row">
+          <b>Terrain exaggeration</b><br>
+          <input id="exagSlider" type="range" min="100" max="250" value="160">
+          <div class="small">Exaggeration: <span id="exagValue">1.60×</span></div>
+        </div>
+
+        <div class="legend">
+          <b>Legend</b><br>
+          <span class="swatch" style="background:#a5d6a7"></span>Minimal<br>
+          <span class="swatch" style="background:#2e7d32"></span>Mild<br>
+          <span class="swatch" style="background:#feef01"></span>Moderate<br>
+          <span class="swatch" style="background:#1565c0"></span>Severe
+        </div>
+      </div>
+
+      <!-- Impact Guide -->
+      <div class="sectionBlock" style="margin-top:12px;">
         <div class="placeTitle" id="impactPlace">No selection</div>
         <div class="muted" id="impactMun">Select a barangay polygon on the map.</div>
 
@@ -293,9 +345,14 @@
       </div>
     </div>
 
-    <div class="impactFooter">
-      Tip: Click a barangay to highlight its border.
+    <div class="sideFooter">
+      Tip: Click a barangay to highlight its border (glow).
     </div>
+  </div>
+
+  <!-- small tab button that appears when sidebar is hidden -->
+  <div class="collapseHint" id="collapseHint" title="Show panel">
+    <span>❯</span>
   </div>
 
   <script>
@@ -380,18 +437,31 @@
     });
 
     // =========================
-    // PANEL TOGGLES
+    // SIDEBAR TOGGLE (SLIDE LEFT)
     // =========================
-    document.getElementById("toggleBtn").addEventListener("click", () => {
-      const panel = document.getElementById("controlPanel");
-      panel.classList.toggle("collapsed");
-      document.getElementById("toggleBtn").textContent = panel.classList.contains("collapsed") ? "Show" : "Hide";
+    const sidebar = document.getElementById("sidebar");
+    const sidebarToggleBtn = document.getElementById("sidebarToggleBtn");
+    const collapseHint = document.getElementById("collapseHint");
+
+    function setSidebarCollapsed(collapsed){
+      sidebar.classList.toggle("collapsed", collapsed);
+      sidebarToggleBtn.textContent = collapsed ? "Show" : "Hide";
+      collapseHint.innerHTML = collapsed ? "<span>❯</span>" : "<span>❮</span>";
+    }
+
+    sidebarToggleBtn.addEventListener("click", () => {
+      setSidebarCollapsed(!sidebar.classList.contains("collapsed"));
     });
 
-    document.getElementById("impactToggleBtn").addEventListener("click", () => {
-      const p = document.getElementById("impactPanel");
-      p.classList.toggle("collapsed");
-      document.getElementById("impactToggleBtn").textContent = p.classList.contains("collapsed") ? "Show" : "Hide";
+    collapseHint.addEventListener("click", () => {
+      setSidebarCollapsed(false);
+    });
+
+    // Optional: press "P" to toggle panel quickly
+    window.addEventListener("keydown", (e) => {
+      if (e.key.toLowerCase() === "p") {
+        setSidebarCollapsed(!sidebar.classList.contains("collapsed"));
+      }
     });
 
     // =========================
@@ -517,7 +587,6 @@
       return border;
     }
 
-    // keep track of currently selected border so we can revert it
     let currentSelectedRiskEntity = null;
 
     function applyBorderStyle(borderEntity, style){
@@ -528,14 +597,12 @@
 
     function setSelectedBorder(riskEntity){
       // reset previous
-      if (currentSelectedRiskEntity?. _borderEntity){
+      if (currentSelectedRiskEntity?._borderEntity){
         applyBorderStyle(currentSelectedRiskEntity._borderEntity, BORDER_DEFAULT);
       }
-
       currentSelectedRiskEntity = riskEntity || null;
-
       // apply selected
-      if (currentSelectedRiskEntity?. _borderEntity){
+      if (currentSelectedRiskEntity?._borderEntity){
         applyBorderStyle(currentSelectedRiskEntity._borderEntity, BORDER_SELECTED);
       }
     }
@@ -598,10 +665,9 @@
         e.polygon.extrudedHeight = undefined;
         e.polygon.perPositionHeight = false;
 
-        // ✅ create border polyline per barangay and store reference
+        // create border polyline per barangay and store reference
         e._borderEntity = createBorderPolylineForPolygon(e);
 
-        // remove Cesium popup strings
         e.name = "";
         e.description = "";
       }
@@ -664,8 +730,6 @@
         riskFieldText.textContent = RISK_FIELD;
         riskDataText.textContent = "FrostRisk_v1 (Ion)";
         riskRawText.textContent = "—";
-
-        // ✅ also clear border highlight
         setSelectedBorder(null);
       }
 
@@ -674,13 +738,11 @@
       const riskSet = new Set(riskDS.entities.values);
 
       viewer.selectedEntityChanged.addEventListener((entity) => {
-        // if nothing selected / not a risk polygon, clear
         if (!entity || !entity.properties || !entity.polygon || !riskSet.has(entity)){
           clearPanel();
           return;
         }
 
-        // ✅ highlight the selected barangay outline
         setSelectedBorder(entity);
 
         const now = Cesium.JulianDate.now();
