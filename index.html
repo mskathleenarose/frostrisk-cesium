@@ -9,7 +9,22 @@
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 
   <style>
-    :root{
+    /* ============ APP SCOPE WRAPPER ============ */
+    #frost3dApp{
+      position:relative;
+      width:100%;
+      height:100%;
+      font-family:'Open Sans', Arial, sans-serif;
+    }
+    html, body{
+      width:100%;
+      height:100%;
+      margin:0;
+      padding:0;
+      overflow:hidden;
+    }
+
+    #frost3dApp{
       --brand:#073763;
       --brand2:#0b4a8b;
 
@@ -19,26 +34,29 @@
 
       --sidebarW: 400px;
       --sidebarMin: 56px;
-      --sidebarCurrentW: 400px; /* JS updates this on collapse/expand */
+      --sidebarCurrentW: 400px; /* JS updates this */
       --topOffset: 0px;
     }
 
-    html, body, #cesiumContainer{
-      width:100%; height:100%;
-      margin:0; padding:0;
-      overflow:hidden;
-      font-family:'Open Sans', Arial, sans-serif;
+    /* Make sure Cesium canvas is truly full */
+    #frost3dApp #cesiumContainer{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
     }
 
-    /* ================= TOP SEARCH BAR (DOCKED BESIDE LEFT WINDOW) ================= */
-    .topBar{
+    /* ============ SEARCH BAR (DOCKED BESIDE SIDEBAR) ============ */
+    #frost3dApp .f3-topBar{
       position:absolute;
       top:10px;
-      left: calc(var(--sidebarCurrentW) + 12px); /* ✅ always beside sidebar */
+      left: calc(var(--sidebarCurrentW) + 12px);
       z-index:1006;
 
-      width: min(520px, calc(100vw - var(--sidebarCurrentW) - 24px));
+      width: min(560px, calc(100vw - var(--sidebarCurrentW) - 24px));
       height:48px;
+      min-height:48px;
+      max-height:48px;
 
       border-radius:14px;
       background: rgba(7,55,99,0.92);
@@ -46,49 +64,72 @@
       box-shadow: 0 10px 26px rgba(0,0,0,0.18);
       border: 1px solid rgba(255,255,255,0.10);
 
-      display:flex; align-items:center; gap:10px;
+      display:flex;
+      align-items:center;
+      gap:10px;
       padding:8px 10px;
+
+      box-sizing:border-box;
+      overflow:hidden;
       color:#fff;
     }
-    .brand{
+
+    #frost3dApp .f3-brand{
       display:flex; align-items:center; gap:8px;
       padding:6px 10px; border-radius:12px;
       background: rgba(255,255,255,0.10);
       border: 1px solid rgba(255,255,255,0.14);
-      font-weight:900; letter-spacing:.3px; white-space:nowrap;
+      font-weight:900;
+      letter-spacing:.3px;
+      white-space:nowrap;
+      box-sizing:border-box;
     }
-    .brand .flake{ font-size:16px; line-height:1; }
-    .brand .name{ font-size:15px; }
-    .brand .name span{ opacity:0.95; font-weight:900; }
+    #frost3dApp .f3-brand .f3-flake{ font-size:16px; line-height:1; }
+    #frost3dApp .f3-brand .f3-name{ font-size:15px; }
+    #frost3dApp .f3-brand .f3-name span{ opacity:0.95; font-weight:900; }
 
-    .searchWrap{
-      flex:1; height:34px; border-radius:999px;
+    #frost3dApp .f3-searchWrap{
+      flex:1;
+      height:34px;
+      border-radius:999px;
       background: rgba(255,255,255,0.10);
       border:1px solid rgba(255,255,255,0.16);
-      display:flex; align-items:center; padding:0 12px; gap:8px;
+      display:flex;
+      align-items:center;
+      padding:0 12px;
+      gap:8px;
+      box-sizing:border-box;
     }
-    .searchIcon{ width:16px; height:16px; opacity:0.95; flex:0 0 auto; }
-    .searchInput{
-      flex:1; height:100%;
-      border:none; outline:none;
-      background:transparent; color:#fff;
-      font-size:13.5px; font-weight:700;
-      letter-spacing: .1px;
+    #frost3dApp .f3-searchIcon{ width:16px; height:16px; opacity:0.95; flex:0 0 auto; }
+    #frost3dApp .f3-searchInput{
+      flex:1;
+      height:100%;
+      border:none;
+      outline:none;
+      background:transparent;
+      color:#fff;
+      font-size:13.5px;
+      font-weight:700;
+      letter-spacing:.1px;
     }
-    .searchInput::placeholder{ color: rgba(255,255,255,0.78); font-weight:600; }
-    .goBtn{
+    #frost3dApp .f3-searchInput::placeholder{
+      color: rgba(255,255,255,0.78);
+      font-weight:600;
+    }
+    #frost3dApp .f3-goBtn{
       width:38px; height:34px;
       border:none; border-radius:999px;
       background: rgba(255,255,255,0.16);
       border:1px solid rgba(255,255,255,0.18);
       cursor:pointer;
       display:flex; align-items:center; justify-content:center;
+      box-sizing:border-box;
     }
-    .goBtn:hover{ background: rgba(255,255,255,0.22); }
-    .goIcon{ width:16px; height:16px; opacity:0.95; }
+    #frost3dApp .f3-goBtn:hover{ background: rgba(255,255,255,0.22); }
+    #frost3dApp .f3-goIcon{ width:16px; height:16px; opacity:0.95; }
 
-    /* ================= LEFT WINDOW SIDEBAR (FULL HEIGHT) ================= */
-    .sidebar{
+    /* ============ LEFT WINDOW SIDEBAR ============ */
+    #frost3dApp .f3-sidebar{
       position:absolute;
       top: var(--topOffset);
       left: 0;
@@ -97,20 +138,21 @@
       width: var(--sidebarW);
       height: 100vh;
       background: var(--bg);
-
       border-right: 1px solid var(--line2);
+
       display:flex;
       flex-direction: column;
       overflow:hidden;
 
       transform: translateX(0);
       transition: transform .22s ease;
+      box-sizing:border-box;
     }
-    .sidebar.collapsed{
+    #frost3dApp .f3-sidebar.f3-collapsed{
       transform: translateX(calc(-1 * (var(--sidebarW) - var(--sidebarMin))));
     }
 
-    .sideHeader{
+    #frost3dApp .f3-sideHeader{
       padding: 14px 14px 10px;
       background: linear-gradient(135deg, var(--brand2), var(--brand));
       color:#fff;
@@ -118,14 +160,13 @@
       align-items:flex-start;
       justify-content: space-between;
       gap: 10px;
-      flex: 0 0 auto;
       border-bottom: 1px solid rgba(255,255,255,0.12);
+      box-sizing:border-box;
     }
-    .sideHeader b{ font-size:14px; letter-spacing:.2px; font-weight: 800; }
-    .sideHeader .sub{ font-size:12px; opacity:.92; margin-top:2px; line-height: 1.25; }
+    #frost3dApp .f3-sideHeader b{ font-size:14px; letter-spacing:.2px; font-weight: 800; }
+    #frost3dApp .f3-sideHeader .f3-sub{ font-size:12px; opacity:.92; margin-top:2px; line-height: 1.25; }
 
-    .sideHeaderBtns{ display:flex; align-items:center; gap:8px; }
-    .sideBtn{
+    #frost3dApp .f3-sideBtn{
       border:none;
       background: rgba(255,255,255,0.18);
       color:#fff;
@@ -136,18 +177,17 @@
       font-size:12px;
       user-select:none;
     }
-    .sideBtn:hover{ background: rgba(255,255,255,0.24); }
+    #frost3dApp .f3-sideBtn:hover{ background: rgba(255,255,255,0.24); }
 
-    /* Tabs */
-    .tabs{
+    #frost3dApp .f3-tabs{
       display:flex;
       gap:8px;
       padding: 10px 14px;
       border-bottom: 1px solid rgba(0,0,0,0.08);
       background: rgba(0,0,0,0.02);
-      flex: 0 0 auto;
+      box-sizing:border-box;
     }
-    .tabBtn{
+    #frost3dApp .f3-tabBtn{
       flex:1;
       border:1px solid rgba(7,55,99,0.16);
       background: #fff;
@@ -159,88 +199,96 @@
       cursor:pointer;
       user-select:none;
     }
-    .tabBtn.active{
+    #frost3dApp .f3-tabBtn.f3-active{
       background: rgba(11,74,139,0.10);
       border-color: rgba(11,74,139,0.28);
       color: rgba(7,55,99,1);
     }
 
-    .sideBody{
+    #frost3dApp .f3-sideBody{
       padding: 12px 14px;
       overflow-y: auto;
       flex: 1 1 auto;
       color:#111;
+      box-sizing:border-box;
     }
-    .tabPane{ display:none; }
-    .tabPane.active{ display:block; }
+    #frost3dApp .f3-tabPane{ display:none; }
+    #frost3dApp .f3-tabPane.f3-active{ display:block; }
 
-    .sectionBlock{
+    #frost3dApp .f3-card{
       border:1px solid rgba(0,0,0,0.08);
       border-radius:16px;
       padding:12px;
       background:#fff;
       box-shadow: 0 8px 18px rgba(0,0,0,0.05);
+      box-sizing:border-box;
     }
-    .row{ margin-top:10px; }
-    input[type="range"]{ width:100%; }
+    #frost3dApp .f3-row{ margin-top:10px; }
+    #frost3dApp input[type="range"]{ width:100%; }
 
-    .small{ color: rgba(0,0,0,0.62); font-size:12px; }
-    .muted{ color: var(--muted); font-size:12px; }
+    #frost3dApp .f3-small{ color: rgba(0,0,0,0.62); font-size:12px; }
+    #frost3dApp .f3-muted{ color: var(--muted); font-size:12px; }
 
-    .legend{ margin-top:10px; line-height:1.75; }
-    .swatch{ display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:6px; vertical-align:middle; }
+    #frost3dApp .f3-legend{ margin-top:10px; line-height:1.75; }
+    #frost3dApp .f3-swatch{
+      display:inline-block; width:12px; height:12px;
+      border-radius:3px; margin-right:6px; vertical-align:middle;
+    }
 
-    .placeTitle{ font-size:18px; font-weight:800; margin:0 0 2px; color:#0b2239; }
+    #frost3dApp .f3-placeTitle{ font-size:18px; font-weight:800; margin:0 0 2px; color:#0b2239; }
 
-    .grid2{
-      display:grid; grid-template-columns: 1fr auto;
-      gap:10px; align-items:center;
-      margin-top:10px; padding:10px;
+    #frost3dApp .f3-grid2{
+      display:grid;
+      grid-template-columns: 1fr auto;
+      gap:10px;
+      align-items:center;
+      margin-top:10px;
+      padding:10px;
       border-radius:14px;
       background: rgba(11,74,139,0.05);
       border:1px solid rgba(11,74,139,0.14);
+      box-sizing:border-box;
     }
 
-    .pill{
+    #frost3dApp .f3-pill{
       display:inline-flex; align-items:center; gap:6px;
       padding:6px 10px; border-radius:999px;
       font-weight:800; font-size:12px;
       border:1px solid rgba(0,0,0,0.08);
       user-select:none; white-space:nowrap;
     }
-    .pillDot{ width:8px; height:8px; border-radius:50%; display:inline-block; opacity:.9; }
+    #frost3dApp .f3-pillDot{ width:8px; height:8px; border-radius:50%; display:inline-block; opacity:.9; }
 
-    .miniMeta{
+    #frost3dApp .f3-miniMeta{
       display:flex; justify-content:space-between; gap:10px;
       margin-top:10px; padding-top:10px;
       border-top:1px dashed rgba(0,0,0,0.15);
     }
-    .miniMeta b{ font-size:11px; letter-spacing:.25px; color:#333; font-weight:800; }
-    .miniMeta .muted{ font-size:12px; }
+    #frost3dApp .f3-miniMeta b{ font-size:11px; letter-spacing:.25px; color:#333; font-weight:800; }
 
-    .section{ margin-top:12px; }
-    .sectionTitle{ display:flex; align-items:center; gap:8px; font-weight:800; color:#0b2239; margin-bottom:6px; }
-    .icoChip{
+    #frost3dApp .f3-section{ margin-top:12px; }
+    #frost3dApp .f3-sectionTitle{ display:flex; align-items:center; gap:8px; font-weight:800; color:#0b2239; margin-bottom:6px; }
+    #frost3dApp .f3-icoChip{
       display:inline-flex; align-items:center; justify-content:center;
       width:26px; height:26px; border-radius:10px;
       border:1px solid rgba(0,0,0,0.12);
       background:rgba(0,0,0,0.03);
       font-size:16px; line-height:1; flex:0 0 auto;
     }
-    .impactList{ margin:0; padding-left:18px; color:#223; line-height:1.5; }
-    .impactList li{ margin:4px 0; }
+    #frost3dApp .f3-impactList{ margin:0; padding-left:18px; color:#223; line-height:1.5; }
+    #frost3dApp .f3-impactList li{ margin:4px 0; }
 
-    .sideFooter{
+    #frost3dApp .f3-sideFooter{
       padding:10px 14px;
       border-top:1px solid rgba(0,0,0,0.08);
       font-size:12px;
       color: rgba(0,0,0,0.62);
       background: rgba(0,0,0,0.02);
-      flex:0 0 auto;
+      box-sizing:border-box;
     }
 
     /* Divider handle */
-    .dividerHandle{
+    #frost3dApp .f3-dividerHandle{
       position:absolute;
       top: 0;
       right: -10px;
@@ -252,7 +300,7 @@
       align-items:center;
       justify-content:center;
     }
-    .dividerPill{
+    #frost3dApp .f3-dividerPill{
       width: 10px;
       height: 86px;
       border-radius: 999px;
@@ -265,586 +313,574 @@
       backdrop-filter: blur(6px);
       user-select:none;
     }
-    .dividerPill span{
+    #frost3dApp .f3-dividerPill span{
       font-size: 14px;
       font-weight: 900;
       color: rgba(7,55,99,0.88);
       line-height: 1;
     }
-    .sidebar.collapsed .dividerPill span{ transform: rotate(180deg); }
+    #frost3dApp .f3-sidebar.f3-collapsed .f3-dividerPill span{ transform: rotate(180deg); }
 
-    .cesium-widget-credits{ right:12px !important; bottom:6px !important; }
+    /* Cesium credits position */
+    #frost3dApp .cesium-widget-credits{ right:12px !important; bottom:6px !important; }
   </style>
 </head>
 
 <body>
-  <div id="cesiumContainer"></div>
+  <div id="frost3dApp">
+    <div id="cesiumContainer"></div>
 
-  <!-- ================= TOP SEARCH BAR (DOCKED BESIDE SIDEBAR) ================= -->
-  <div class="topBar" id="topBar">
-    <div class="brand">
-      <span class="flake">❄️</span>
-      <div class="name">FROST<span>PH</span></div>
-    </div>
+    <!-- SEARCH BAR -->
+    <div class="f3-topBar" id="f3TopBar">
+      <div class="f3-brand">
+        <span class="f3-flake">❄️</span>
+        <div class="f3-name">FROST<span>PH</span></div>
+      </div>
 
-    <div class="searchWrap">
-      <svg class="searchIcon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="white" stroke-opacity=".88" stroke-width="2"/>
-        <path d="M16.5 16.5 21 21" stroke="white" stroke-opacity=".88" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-
-      <input id="searchInput" class="searchInput" placeholder="Search place (e.g., Atok, Benguet)" />
-
-      <button id="searchBtn" class="goBtn" title="Search">
-        <svg class="goIcon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M5 12h12" stroke="white" stroke-opacity=".92" stroke-width="2" stroke-linecap="round"/>
-          <path d="M13 6l6 6-6 6" stroke="white" stroke-opacity=".92" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <div class="f3-searchWrap">
+        <svg class="f3-searchIcon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="white" stroke-opacity=".88" stroke-width="2"/>
+          <path d="M16.5 16.5 21 21" stroke="white" stroke-opacity=".88" stroke-width="2" stroke-linecap="round"/>
         </svg>
-      </button>
-    </div>
-  </div>
 
-  <!-- ================= LEFT WINDOW SIDEBAR ================= -->
-  <div class="sidebar" id="sidebar">
-    <div class="dividerHandle" id="dividerHandle" title="Hide/Show sidebar">
-      <div class="dividerPill"><span>❮</span></div>
-    </div>
+        <input id="searchInput" class="f3-searchInput" placeholder="Search place (e.g., Atok, Benguet)" />
 
-    <div class="sideHeader">
-      <div>
-        <b>FrostPH Risk Map (3D)</b>
-        <div class="sub">Use tabs • Click barangay to see impacts</div>
-      </div>
-      <div class="sideHeaderBtns">
-        <button class="sideBtn" id="sidebarToggleBtn">Hide</button>
+        <button id="searchBtn" class="f3-goBtn" title="Search">
+          <svg class="f3-goIcon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M5 12h12" stroke="white" stroke-opacity=".92" stroke-width="2" stroke-linecap="round"/>
+            <path d="M13 6l6 6-6 6" stroke="white" stroke-opacity=".92" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
       </div>
     </div>
 
-    <div class="tabs">
-      <button class="tabBtn active" id="tabBtnRisk">Risk Level</button>
-      <button class="tabBtn" id="tabBtnImpact">Impact Guide</button>
-    </div>
+    <!-- LEFT SIDEBAR WINDOW -->
+    <div class="f3-sidebar" id="sidebar">
+      <div class="f3-dividerHandle" id="dividerHandle" title="Hide/Show sidebar">
+        <div class="f3-dividerPill"><span>❮</span></div>
+      </div>
 
-    <div class="sideBody">
-      <!-- TAB: Risk -->
-      <div class="tabPane active" id="tabRisk">
-        <div class="sectionBlock">
-          <div style="font-weight:800; color:#0b2239;">Map controls</div>
-          <div class="small" style="margin-top:4px;">
-            drag rotate • right-drag/Ctrl-drag pan • scroll zoom • tilt in 3D
+      <div class="f3-sideHeader">
+        <div>
+          <b>FrostPH Risk Map (3D)</b>
+          <div class="f3-sub">Use tabs • Click barangay to see impacts</div>
+        </div>
+        <div>
+          <button class="f3-sideBtn" id="sidebarToggleBtn">Hide</button>
+        </div>
+      </div>
+
+      <div class="f3-tabs">
+        <button class="f3-tabBtn f3-active" id="tabBtnRisk">Risk Level</button>
+        <button class="f3-tabBtn" id="tabBtnImpact">Impact Guide</button>
+      </div>
+
+      <div class="f3-sideBody">
+        <!-- TAB: RISK -->
+        <div class="f3-tabPane f3-active" id="tabRisk">
+          <div class="f3-card">
+            <div style="font-weight:800; color:#0b2239;">Map controls</div>
+            <div class="f3-small" style="margin-top:4px;">
+              drag rotate • right-drag/Ctrl-drag pan • scroll zoom • tilt in 3D
+            </div>
+
+            <div class="f3-row">
+              <b>Risk overlay opacity</b><br>
+              <input id="riskSlider" type="range" min="0" max="100" value="65">
+              <div class="f3-small">Opacity: <span id="riskValue">65%</span></div>
+            </div>
+
+            <div class="f3-row">
+              <b>Terrain exaggeration</b><br>
+              <input id="exagSlider" type="range" min="100" max="250" value="160">
+              <div class="f3-small">Exaggeration: <span id="exagValue">1.60×</span></div>
+            </div>
+
+            <div class="f3-legend">
+              <b>Legend</b><br>
+              <span class="f3-swatch" style="background:#a5d6a7"></span>Minimal<br>
+              <span class="f3-swatch" style="background:#2e7d32"></span>Mild<br>
+              <span class="f3-swatch" style="background:#feef01"></span>Moderate<br>
+              <span class="f3-swatch" style="background:#1565c0"></span>Severe
+            </div>
           </div>
+        </div>
 
-          <div class="row">
-            <b>Risk overlay opacity</b><br>
-            <input id="riskSlider" type="range" min="0" max="100" value="65">
-            <div class="small">Opacity: <span id="riskValue">65%</span></div>
-          </div>
+        <!-- TAB: IMPACT -->
+        <div class="f3-tabPane" id="tabImpact">
+          <div class="f3-card">
+            <div class="f3-placeTitle" id="impactPlace">No selection</div>
+            <div class="f3-muted" id="impactMun">Select a barangay polygon on the map.</div>
 
-          <div class="row">
-            <b>Terrain exaggeration</b><br>
-            <input id="exagSlider" type="range" min="100" max="250" value="160">
-            <div class="small">Exaggeration: <span id="exagValue">1.60×</span></div>
-          </div>
+            <div class="f3-grid2">
+              <div>
+                <div style="font-weight:800; color:#0b2239;">Frost Risk Level</div>
+                <div class="f3-muted" style="margin-top:2px;">Interpretation for farmers</div>
+              </div>
+              <div id="impactRiskPill"></div>
+            </div>
 
-          <div class="legend">
-            <b>Legend</b><br>
-            <span class="swatch" style="background:#a5d6a7"></span>Minimal<br>
-            <span class="swatch" style="background:#2e7d32"></span>Mild<br>
-            <span class="swatch" style="background:#feef01"></span>Moderate<br>
-            <span class="swatch" style="background:#1565c0"></span>Severe
+            <div class="f3-miniMeta">
+              <div>
+                <b>RISK FIELD</b>
+                <div class="f3-muted" id="riskFieldText">RiskCls</div>
+              </div>
+              <div style="text-align:right;">
+                <b>DATA</b>
+                <div class="f3-muted" id="riskDataText">FrostRisk_v1 (Ion)</div>
+              </div>
+            </div>
+
+            <div class="f3-muted" style="margin-top:8px;">
+              Raw value: <b id="riskRawText">—</b>
+            </div>
+
+            <div class="f3-section">
+              <div class="f3-sectionTitle"><span class="f3-icoChip">⚠️</span><span>Possible impacts</span></div>
+              <ul class="f3-impactList" id="impactList"><li>—</li></ul>
+            </div>
+
+            <div class="f3-section">
+              <div class="f3-sectionTitle"><span class="f3-icoChip">✅</span><span>Recommended actions</span></div>
+              <ul class="f3-impactList" id="actionList"><li>—</li></ul>
+            </div>
+
+            <div class="f3-section">
+              <div class="f3-sectionTitle"><span class="f3-icoChip">📸</span><span>Insurance & reporting</span></div>
+              <ul class="f3-impactList" id="insList">
+                <li>Report crop damage within <b>7 days</b> to MAO/PCIC (if insured).</li>
+                <li>Record farm location + barangay.</li>
+                <li>Take clear photos (before/after) with date/time.</li>
+                <li>Keep notes on affected crop, area, and estimated loss.</li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- TAB: Impact -->
-      <div class="tabPane" id="tabImpact">
-        <div class="sectionBlock">
-          <div class="placeTitle" id="impactPlace">No selection</div>
-          <div class="muted" id="impactMun">Select a barangay polygon on the map.</div>
-
-          <div class="grid2">
-            <div>
-              <div style="font-weight:800; color:#0b2239;">Frost Risk Level</div>
-              <div class="muted" style="margin-top:2px;">Interpretation for farmers</div>
-            </div>
-            <div id="impactRiskPill"></div>
-          </div>
-
-          <div class="miniMeta">
-            <div>
-              <b>RISK FIELD</b>
-              <div class="muted" id="riskFieldText">RiskCls</div>
-            </div>
-            <div style="text-align:right;">
-              <b>DATA</b>
-              <div class="muted" id="riskDataText">FrostRisk_v1 (Ion)</div>
-            </div>
-          </div>
-
-          <div class="muted" style="margin-top:8px;">
-            Raw value: <b id="riskRawText">—</b>
-          </div>
-
-          <div class="section">
-            <div class="sectionTitle"><span class="icoChip">⚠️</span><span>Possible impacts</span></div>
-            <ul class="impactList" id="impactList"><li>—</li></ul>
-          </div>
-
-          <div class="section">
-            <div class="sectionTitle"><span class="icoChip">✅</span><span>Recommended actions</span></div>
-            <ul class="impactList" id="actionList"><li>—</li></ul>
-          </div>
-
-          <div class="section">
-            <div class="sectionTitle"><span class="icoChip">📸</span><span>Insurance & reporting</span></div>
-            <ul class="impactList" id="insList">
-              <li>Report crop damage within <b>7 days</b> to MAO/PCIC (if insured).</li>
-              <li>Record farm location + barangay.</li>
-              <li>Take clear photos (before/after) with date/time.</li>
-              <li>Keep notes on affected crop, area, and estimated loss.</li>
-            </ul>
-          </div>
-        </div>
+      <div class="f3-sideFooter">
+        Tip: Click a barangay to highlight its border (strong glow).
       </div>
     </div>
 
-    <div class="sideFooter">
-      Tip: Click a barangay to highlight its border (strong glow).
-    </div>
-  </div>
+    <script>
+      // =========================
+      // CONFIG
+      // =========================
+      const RISK_ASSET_ID = 4498466;
+      const BOUNDARY_ASSET_ID = 4076193;
+      const RISK_FIELD = "RiskCls";
 
-  <script>
-    // =========================
-    // CONFIG
-    // =========================
-    const RISK_ASSET_ID = 4498466;
-    const BOUNDARY_ASSET_ID = 4076193;
-    const RISK_FIELD = "RiskCls";
+      const BORDER_DEFAULT = { width: 2, color: Cesium.Color.WHITE.withAlpha(0.78), glowPower: 0.10 };
+      const BORDER_SELECTED = {
+        width: 8,
+        color: Cesium.Color.fromCssColorString("#00E5FF").withAlpha(0.98),
+        glowPower: 0.55
+      };
 
-    const BORDER_DEFAULT = { width: 2, color: Cesium.Color.WHITE.withAlpha(0.78), glowPower: 0.10 };
-    const BORDER_SELECTED = { width: 7, color: Cesium.Color.fromCssColorString("#00E5FF").withAlpha(0.95), glowPower: 0.45 };
+      const START = {
+        destination: Cesium.Cartesian3.fromDegrees(120.7, 16.6, 65000),
+        orientation: { heading: Cesium.Math.toRadians(20), pitch: Cesium.Math.toRadians(-45), roll: 0 }
+      };
 
-    const START = {
-      destination: Cesium.Cartesian3.fromDegrees(120.7, 16.6, 65000),
-      orientation: { heading: Cesium.Math.toRadians(20), pitch: Cesium.Math.toRadians(-45), roll: 0 }
-    };
+      // =========================
+      // TOKEN
+      // =========================
+      Cesium.Ion.defaultAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJmNDNkZTM0OS00YjJjLTQ1NGYtODY3OC04NGJkNTMyNTVjMzciLCJpZCI6MzU5OTE1LCJpYXQiOjE3NzA2MTk2NTR9.7AMr5xm4NqjOYC-WuCZv1OHw-JwpQsQaXCOl01SE0_0";
 
-    // =========================
-    // TOKEN
-    // =========================
-    Cesium.Ion.defaultAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJmNDNkZTM0OS00YjJjLTQ1NGYtODY3OC04NGJkNTMyNTVjMzciLCJpZCI6MzU5OTE1LCJpYXQiOjE3NzA2MTk2NTR9.7AMr5xm4NqjOYC-WuCZv1OHw-JwpQsQaXCOl01SE0_0";
-
-    // =========================
-    // VIEWER
-    // =========================
-    const viewer = new Cesium.Viewer("cesiumContainer", {
-      terrain: Cesium.Terrain.fromWorldTerrain(),
-      animation: false,
-      timeline: false,
-      baseLayerPicker: true,
-      sceneModePicker: true,
-      geocoder: false,
-      homeButton: true,
-      infoBox: false,
-      selectionIndicator: false
-    });
-
-    viewer.scene.mode = Cesium.SceneMode.SCENE3D;
-    viewer.scene.globe.depthTestAgainstTerrain = false;
-    viewer.scene.globe.enableLighting = true;
-    viewer.shadows = true;
-    viewer.scene.globe.terrainExaggeration = 1.6;
-    viewer.camera.setView(START);
-
-    viewer.homeButton.viewModel.command.beforeExecute.addEventListener((e) => {
-      e.cancel = true;
-      viewer.camera.flyTo(START);
-    });
-
-    // =========================
-    // SEARCH
-    // =========================
-    const geocoderVM = new Cesium.GeocoderViewModel({ scene: viewer.scene });
-
-    async function runSearch(){
-      const input = document.getElementById("searchInput");
-      const q = (input.value || "").trim();
-      if (!q) return;
-      geocoderVM.searchText = q;
-      try { await geocoderVM.search(); }
-      catch (e){
-        console.warn("Geocode failed:", e);
-        input.placeholder = "No results. Try 'Atok, Benguet' or 'Baguio City'";
-      }
-    }
-    document.getElementById("searchBtn").addEventListener("click", runSearch);
-    document.getElementById("searchInput").addEventListener("keydown", (ev) => {
-      if (ev.key === "Enter") runSearch();
-    });
-
-    // =========================
-    // SIDEBAR + DOCKED SEARCH POSITION
-    // =========================
-    const sidebar = document.getElementById("sidebar");
-    const sidebarToggleBtn = document.getElementById("sidebarToggleBtn");
-    const dividerHandle = document.getElementById("dividerHandle");
-
-    function updateSidebarCurrentW(){
-      const root = document.documentElement;
-      const css = getComputedStyle(root);
-
-      const sidebarW = css.getPropertyValue("--sidebarW").trim() || "400px";
-      const sidebarMin = css.getPropertyValue("--sidebarMin").trim() || "56px";
-      const collapsed = sidebar.classList.contains("collapsed");
-
-      root.style.setProperty("--sidebarCurrentW", collapsed ? sidebarMin : sidebarW);
-    }
-
-    function setSidebarCollapsed(collapsed){
-      sidebar.classList.toggle("collapsed", collapsed);
-      sidebarToggleBtn.textContent = collapsed ? "Show" : "Hide";
-      updateSidebarCurrentW(); // ✅ keep search bar beside sidebar
-    }
-
-    sidebarToggleBtn.addEventListener("click", () => setSidebarCollapsed(!sidebar.classList.contains("collapsed")));
-    dividerHandle.addEventListener("click", () => setSidebarCollapsed(!sidebar.classList.contains("collapsed")));
-
-    updateSidebarCurrentW();
-    window.addEventListener("resize", updateSidebarCurrentW);
-
-    // =========================
-    // TABS
-    // =========================
-    const tabBtnRisk = document.getElementById("tabBtnRisk");
-    const tabBtnImpact = document.getElementById("tabBtnImpact");
-    const tabRisk = document.getElementById("tabRisk");
-    const tabImpact = document.getElementById("tabImpact");
-
-    function setActiveTab(which){
-      const isRisk = which === "risk";
-      tabBtnRisk.classList.toggle("active", isRisk);
-      tabBtnImpact.classList.toggle("active", !isRisk);
-      tabRisk.classList.toggle("active", isRisk);
-      tabImpact.classList.toggle("active", !isRisk);
-    }
-    tabBtnRisk.addEventListener("click", () => setActiveTab("risk"));
-    tabBtnImpact.addEventListener("click", () => setActiveTab("impact"));
-
-    // =========================
-    // HELPERS
-    // =========================
-    function norm(v){ return (v ?? "").toString().trim().toLowerCase(); }
-
-    function baseRiskColor(levelRaw){
-      const raw = (levelRaw ?? "").toString().trim();
-      const level = raw.toLowerCase();
-      if (raw === "3") return Cesium.Color.fromCssColorString("#1565c0");
-      if (raw === "2") return Cesium.Color.fromCssColorString("#feef01");
-      if (raw === "1") return Cesium.Color.fromCssColorString("#2e7d32");
-      if (raw === "0") return Cesium.Color.fromCssColorString("#a5d6a7");
-      if (level === "severe")   return Cesium.Color.fromCssColorString("#1565c0");
-      if (level === "moderate") return Cesium.Color.fromCssColorString("#feef01");
-      if (level === "mild")     return Cesium.Color.fromCssColorString("#2e7d32");
-      if (level === "minimal")  return Cesium.Color.fromCssColorString("#a5d6a7");
-      return Cesium.Color.fromCssColorString("#a5d6a7");
-    }
-
-    function escapeHtml(s){
-      return String(s ?? "")
-        .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;").replaceAll("'","&#039;");
-    }
-
-    function riskLabel(levelRaw){
-      const raw = (levelRaw ?? "").toString().trim();
-      const level = raw.toLowerCase();
-      if (raw === "3" || level === "severe") return "Severe";
-      if (raw === "2" || level === "moderate") return "Moderate";
-      if (raw === "1" || level === "mild") return "Mild";
-      if (raw === "0" || level === "minimal") return "Minimal";
-      return raw ? (raw.charAt(0).toUpperCase() + raw.slice(1)) : "Minimal";
-    }
-
-    function riskPillHtml(levelRaw){
-      const raw = (levelRaw ?? "").toString().trim();
-      const levelNorm = norm(levelRaw);
-      const label = riskLabel(levelRaw);
-      const bg =
-        (raw === "3" || levelNorm === "severe")   ? "#1565c0" :
-        (raw === "2" || levelNorm === "moderate") ? "#feef01" :
-        (raw === "1" || levelNorm === "mild")     ? "#2e7d32" :
-        (raw === "0" || levelNorm === "minimal")  ? "#a5d6a7" :
-        "#a5d6a7";
-      const fg = (bg === "#feef01" || bg === "#a5d6a7") ? "#111" : "#fff";
-      return `
-        <span class="pill" style="background:${bg}; color:${fg};">
-          <span class="pillDot" style="background:${fg};"></span>
-          ${escapeHtml(label)}
-        </span>
-      `;
-    }
-
-    function setList(el, items){
-      el.innerHTML = "";
-      if (!items || !items.length){ el.innerHTML = "<li>—</li>"; return; }
-      for (const it of items){
-        const li = document.createElement("li");
-        li.textContent = it;
-        el.appendChild(li);
-      }
-    }
-
-    // =========================
-    // IMPACT CONTENT
-    // =========================
-    const IMPACTS = {
-      minimal: {
-        impacts: ["Frost is unlikely based on current classification.", "Cold pockets may still occur in low-lying areas."],
-        actions: ["Continue routine monitoring of advisories.", "Check early morning temperature observations when available."]
-      },
-      mild: {
-        impacts: ["Light frost possible in exposed areas (valleys/slopes).", "Minor leaf scorching on sensitive crops and seedlings.", "Possible slowdown in growth for leafy vegetables."],
-        actions: ["Cover seedlings (plastic/row cover/net) overnight.", "Light irrigation before sunrise (if feasible).", "Monitor early morning temperatures and advisories."]
-      },
-      moderate: {
-        impacts: ["Visible frost formation possible.", "Leaf burn and quality reduction (leafy veg/cabbage outer leaves).", "Reduced yield potential for potato and other highland crops."],
-        actions: ["Use row covers/tunnels; prioritize high-value plots.", "Irrigate strategically during frost window (where applicable).", "Avoid late-day nitrogen-heavy fertilization before cold nights."]
-      },
-      severe: {
-        impacts: ["High likelihood of damaging frost; tissue injury/dieback possible.", "Major yield loss risk for potato, cabbage, and seedlings.", "Severe quality downgrade (burned leaves/heads, stunted growth)."],
-        actions: ["Harvest mature crops early if a severe frost night is expected.", "Deploy protective covering + irrigation/windbreaks if available.", "Document damage immediately for reporting/insurance claims."]
-      }
-    };
-
-    function impactKeyFromRisk(riskRaw){
-      const raw = (riskRaw ?? "").toString().trim();
-      const r = norm(riskRaw);
-      if (raw === "3" || r === "severe") return "severe";
-      if (raw === "2" || r === "moderate") return "moderate";
-      if (raw === "1" || r === "mild") return "mild";
-      if (raw === "0" || r === "minimal") return "minimal";
-      return "minimal";
-    }
-
-    // =========================
-    // BORDER BUILDER + HIGHLIGHTER
-    // =========================
-    function makeGlowMaterial(color, glowPower){
-      return new Cesium.PolylineGlowMaterialProperty({ glowPower, color });
-    }
-
-    function createBorderPolylineForPolygon(polygonEntity){
-      const now = Cesium.JulianDate.now();
-      const hierarchy = polygonEntity?.polygon?.hierarchy?.getValue(now);
-      if (!hierarchy || !hierarchy.positions || hierarchy.positions.length < 2) return null;
-
-      const positions = hierarchy.positions.slice();
-      positions.push(hierarchy.positions[0]); // close loop
-
-      return viewer.entities.add({
-        polyline: {
-          positions,
-          clampToGround: true,
-          width: BORDER_DEFAULT.width,
-          material: makeGlowMaterial(BORDER_DEFAULT.color, BORDER_DEFAULT.glowPower)
-        }
+      // =========================
+      // VIEWER
+      // =========================
+      const viewer = new Cesium.Viewer("cesiumContainer", {
+        terrain: Cesium.Terrain.fromWorldTerrain(),
+        animation: false,
+        timeline: false,
+        baseLayerPicker: true,
+        sceneModePicker: true,
+        geocoder: false,
+        homeButton: true,
+        infoBox: false,
+        selectionIndicator: false
       });
-    }
 
-    let currentSelectedRiskEntity = null;
+      viewer.scene.mode = Cesium.SceneMode.SCENE3D;
+      viewer.scene.globe.depthTestAgainstTerrain = false;
+      viewer.scene.globe.enableLighting = true;
+      viewer.shadows = true;
+      viewer.scene.globe.terrainExaggeration = 1.6;
+      viewer.camera.setView(START);
 
-    function applyBorderStyle(borderEntity, style){
-      if (!borderEntity?.polyline) return;
-      borderEntity.polyline.width = style.width;
-      borderEntity.polyline.material = makeGlowMaterial(style.color, style.glowPower);
-    }
+      viewer.homeButton.viewModel.command.beforeExecute.addEventListener((e) => {
+        e.cancel = true;
+        viewer.camera.flyTo(START);
+      });
 
-    function setSelectedBorder(riskEntity){
-      if (currentSelectedRiskEntity?._borderEntity){
-        applyBorderStyle(currentSelectedRiskEntity._borderEntity, BORDER_DEFAULT);
+      // =========================
+      // SEARCH
+      // =========================
+      const geocoderVM = new Cesium.GeocoderViewModel({ scene: viewer.scene });
+
+      async function runSearch(){
+        const input = document.getElementById("searchInput");
+        const q = (input.value || "").trim();
+        if (!q) return;
+        geocoderVM.searchText = q;
+        try { await geocoderVM.search(); }
+        catch (e){
+          console.warn("Geocode failed:", e);
+          input.placeholder = "No results. Try 'Atok, Benguet' or 'Baguio City'";
+        }
       }
-      currentSelectedRiskEntity = riskEntity || null;
-      if (currentSelectedRiskEntity?._borderEntity){
-        applyBorderStyle(currentSelectedRiskEntity._borderEntity, BORDER_SELECTED);
+      document.getElementById("searchBtn").addEventListener("click", runSearch);
+      document.getElementById("searchInput").addEventListener("keydown", (ev) => {
+        if (ev.key === "Enter") runSearch();
+      });
+
+      // =========================
+      // SIDEBAR + DOCKED SEARCH POSITION
+      // =========================
+      const sidebar = document.getElementById("sidebar");
+      const sidebarToggleBtn = document.getElementById("sidebarToggleBtn");
+      const dividerHandle = document.getElementById("dividerHandle");
+
+      function updateSidebarCurrentW(){
+        const root = document.getElementById("frost3dApp");
+        const css = getComputedStyle(root);
+
+        const sidebarW = (css.getPropertyValue("--sidebarW").trim() || "400px");
+        const sidebarMin = (css.getPropertyValue("--sidebarMin").trim() || "56px");
+
+        const collapsed = sidebar.classList.contains("f3-collapsed");
+        root.style.setProperty("--sidebarCurrentW", collapsed ? sidebarMin : sidebarW);
       }
-    }
 
-    // =========================
-    // LOAD BOUNDARY
-    // =========================
-    async function loadBoundary(){
-      const resource = await Cesium.IonResource.fromAssetId(BOUNDARY_ASSET_ID);
-      const ds = await Cesium.GeoJsonDataSource.load(resource, { clampToGround: true });
-      viewer.dataSources.add(ds);
+      function setSidebarCollapsed(collapsed){
+        sidebar.classList.toggle("f3-collapsed", collapsed);
+        sidebarToggleBtn.textContent = collapsed ? "Show" : "Hide";
+        updateSidebarCurrentW();
+      }
 
-      const now = Cesium.JulianDate.now();
+      sidebarToggleBtn.addEventListener("click", () => setSidebarCollapsed(!sidebar.classList.contains("f3-collapsed")));
+      dividerHandle.addEventListener("click", () => setSidebarCollapsed(!sidebar.classList.contains("f3-collapsed")));
 
-      for (const e of ds.entities.values){
-        if (!e.polygon) continue;
+      updateSidebarCurrentW();
+      window.addEventListener("resize", updateSidebarCurrentW);
 
-        e.polygon.material = Cesium.Color.TRANSPARENT;
-        e.polygon.outline = false;
+      // =========================
+      // TABS
+      // =========================
+      const tabBtnRisk = document.getElementById("tabBtnRisk");
+      const tabBtnImpact = document.getElementById("tabBtnImpact");
+      const tabRisk = document.getElementById("tabRisk");
+      const tabImpact = document.getElementById("tabImpact");
 
-        const hierarchy = e.polygon.hierarchy.getValue(now);
-        if (!hierarchy || !hierarchy.positions || hierarchy.positions.length < 2) continue;
+      function setActiveTab(which){
+        const isRisk = which === "risk";
+        tabBtnRisk.classList.toggle("f3-active", isRisk);
+        tabBtnImpact.classList.toggle("f3-active", !isRisk);
+        tabRisk.classList.toggle("f3-active", isRisk);
+        tabImpact.classList.toggle("f3-active", !isRisk);
+      }
+      tabBtnRisk.addEventListener("click", () => setActiveTab("risk"));
+      tabBtnImpact.addEventListener("click", () => setActiveTab("impact"));
 
-        viewer.entities.add({
+      // =========================
+      // HELPERS
+      // =========================
+      function norm(v){ return (v ?? "").toString().trim().toLowerCase(); }
+
+      function baseRiskColor(levelRaw){
+        const raw = (levelRaw ?? "").toString().trim();
+        const level = raw.toLowerCase();
+        if (raw === "3") return Cesium.Color.fromCssColorString("#1565c0");
+        if (raw === "2") return Cesium.Color.fromCssColorString("#feef01");
+        if (raw === "1") return Cesium.Color.fromCssColorString("#2e7d32");
+        if (raw === "0") return Cesium.Color.fromCssColorString("#a5d6a7");
+        if (level === "severe")   return Cesium.Color.fromCssColorString("#1565c0");
+        if (level === "moderate") return Cesium.Color.fromCssColorString("#feef01");
+        if (level === "mild")     return Cesium.Color.fromCssColorString("#2e7d32");
+        if (level === "minimal")  return Cesium.Color.fromCssColorString("#a5d6a7");
+        return Cesium.Color.fromCssColorString("#a5d6a7");
+      }
+
+      function escapeHtml(s){
+        return String(s ?? "")
+          .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+          .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+      }
+
+      function riskLabel(levelRaw){
+        const raw = (levelRaw ?? "").toString().trim();
+        const level = raw.toLowerCase();
+        if (raw === "3" || level === "severe") return "Severe";
+        if (raw === "2" || level === "moderate") return "Moderate";
+        if (raw === "1" || level === "mild") return "Mild";
+        if (raw === "0" || level === "minimal") return "Minimal";
+        return raw ? (raw.charAt(0).toUpperCase() + raw.slice(1)) : "Minimal";
+      }
+
+      function riskPillHtml(levelRaw){
+        const raw = (levelRaw ?? "").toString().trim();
+        const levelNorm = norm(levelRaw);
+        const label = riskLabel(levelRaw);
+        const bg =
+          (raw === "3" || levelNorm === "severe")   ? "#1565c0" :
+          (raw === "2" || levelNorm === "moderate") ? "#feef01" :
+          (raw === "1" || levelNorm === "mild")     ? "#2e7d32" :
+          (raw === "0" || levelNorm === "minimal")  ? "#a5d6a7" :
+          "#a5d6a7";
+        const fg = (bg === "#feef01" || bg === "#a5d6a7") ? "#111" : "#fff";
+        return `
+          <span class="f3-pill" style="background:${bg}; color:${fg};">
+            <span class="f3-pillDot" style="background:${fg};"></span>
+            ${escapeHtml(label)}
+          </span>
+        `;
+      }
+
+      function setList(el, items){
+        el.innerHTML = "";
+        if (!items || !items.length){ el.innerHTML = "<li>—</li>"; return; }
+        for (const it of items){
+          const li = document.createElement("li");
+          li.textContent = it;
+          el.appendChild(li);
+        }
+      }
+
+      // =========================
+      // IMPACT CONTENT
+      // =========================
+      const IMPACTS = {
+        minimal: {
+          impacts: ["Frost is unlikely based on current classification.", "Cold pockets may still occur in low-lying areas."],
+          actions: ["Continue routine monitoring of advisories.", "Check early morning temperature observations when available."]
+        },
+        mild: {
+          impacts: ["Light frost possible in exposed areas (valleys/slopes).", "Minor leaf scorching on sensitive crops and seedlings.", "Possible slowdown in growth for leafy vegetables."],
+          actions: ["Cover seedlings (plastic/row cover/net) overnight.", "Light irrigation before sunrise (if feasible).", "Monitor early morning temperatures and advisories."]
+        },
+        moderate: {
+          impacts: ["Visible frost formation possible.", "Leaf burn and quality reduction (leafy veg/cabbage outer leaves).", "Reduced yield potential for potato and other highland crops."],
+          actions: ["Use row covers/tunnels; prioritize high-value plots.", "Irrigate strategically during frost window (where applicable).", "Avoid late-day nitrogen-heavy fertilization before cold nights."]
+        },
+        severe: {
+          impacts: ["High likelihood of damaging frost; tissue injury/dieback possible.", "Major yield loss risk for potato, cabbage, and seedlings.", "Severe quality downgrade (burned leaves/heads, stunted growth)."],
+          actions: ["Harvest mature crops early if a severe frost night is expected.", "Deploy protective covering + irrigation/windbreaks if available.", "Document damage immediately for reporting/insurance claims."]
+        }
+      };
+
+      function impactKeyFromRisk(riskRaw){
+        const raw = (riskRaw ?? "").toString().trim();
+        const r = norm(riskRaw);
+        if (raw === "3" || r === "severe") return "severe";
+        if (raw === "2" || r === "moderate") return "moderate";
+        if (raw === "1" || r === "mild") return "mild";
+        if (raw === "0" || r === "minimal") return "minimal";
+        return "minimal";
+      }
+
+      // =========================
+      // BORDER BUILDER + HIGHLIGHTER
+      // =========================
+      function makeGlowMaterial(color, glowPower){
+        return new Cesium.PolylineGlowMaterialProperty({ glowPower, color });
+      }
+
+      function createBorderPolylineForPolygon(polygonEntity){
+        const now = Cesium.JulianDate.now();
+        const hierarchy = polygonEntity?.polygon?.hierarchy?.getValue(now);
+        if (!hierarchy || !hierarchy.positions || hierarchy.positions.length < 2) return null;
+
+        const positions = hierarchy.positions.slice();
+        positions.push(hierarchy.positions[0]);
+
+        return viewer.entities.add({
           polyline: {
-            positions: hierarchy.positions,
+            positions,
             clampToGround: true,
-            width: 2,
-            material: Cesium.Color.WHITE.withAlpha(0.85)
+            width: BORDER_DEFAULT.width,
+            material: makeGlowMaterial(BORDER_DEFAULT.color, BORDER_DEFAULT.glowPower)
           }
         });
-
-        e.show = false;
       }
 
-      return ds;
-    }
+      let currentSelectedRiskEntity = null;
 
-    // =========================
-    // LOAD RISK LAYER
-    // =========================
-    async function loadRisk(){
-      const resource = await Cesium.IonResource.fromAssetId(RISK_ASSET_ID);
-      const ds = await Cesium.GeoJsonDataSource.load(resource, { clampToGround: true });
-      viewer.dataSources.add(ds);
-
-      const now = Cesium.JulianDate.now();
-
-      for (const e of ds.entities.values){
-        if (!e.polygon) continue;
-
-        const riskCls =
-          e.properties?.[RISK_FIELD]?.getValue?.(now) ??
-          e.properties?.[RISK_FIELD]?.getValue?.() ??
-          "Minimal";
-
-        e._baseRiskColor = baseRiskColor(riskCls);
-
-        e.polygon.height = undefined;
-        e.polygon.extrudedHeight = undefined;
-        e.polygon.perPositionHeight = false;
-
-        e._borderEntity = createBorderPolylineForPolygon(e);
-
-        e.name = "";
-        e.description = "";
+      function applyBorderStyle(borderEntity, style){
+        if (!borderEntity?.polyline) return;
+        borderEntity.polyline.width = style.width;
+        borderEntity.polyline.material = makeGlowMaterial(style.color, style.glowPower);
       }
 
-      return ds;
-    }
-
-    // =========================
-    // UI (opacity + exaggeration)
-    // =========================
-    function wireUI(riskDS){
-      const slider = document.getElementById("riskSlider");
-      const valueLabel = document.getElementById("riskValue");
-
-      function applyOpacity(alpha){
-        for (const e of riskDS.entities.values){
-          if (!e.polygon) continue;
-          e.polygon.material = new Cesium.ColorMaterialProperty(e._baseRiskColor.withAlpha(alpha));
+      function setSelectedBorder(riskEntity){
+        if (currentSelectedRiskEntity?._borderEntity){
+          applyBorderStyle(currentSelectedRiskEntity._borderEntity, BORDER_DEFAULT);
+        }
+        currentSelectedRiskEntity = riskEntity || null;
+        if (currentSelectedRiskEntity?._borderEntity){
+          applyBorderStyle(currentSelectedRiskEntity._borderEntity, BORDER_SELECTED);
         }
       }
 
-      applyOpacity(Number(slider.value) / 100);
-
-      slider.addEventListener("input", () => {
-        const pct = Number(slider.value);
-        valueLabel.textContent = pct + "%";
-        applyOpacity(pct / 100);
-      });
-
-      const exagSlider = document.getElementById("exagSlider");
-      const exagValue = document.getElementById("exagValue");
-
-      exagSlider.addEventListener("input", () => {
-        const ex = Number(exagSlider.value) / 100;
-        exagValue.textContent = ex.toFixed(2) + "×";
-        viewer.scene.globe.terrainExaggeration = ex;
-      });
-    }
-
-    // =========================
-    // IMPACT WIRING (+ auto switch tab)
-    // =========================
-    function wireImpactPanel(riskDS){
-      const placeEl = document.getElementById("impactPlace");
-      const munEl = document.getElementById("impactMun");
-      const pillEl = document.getElementById("impactRiskPill");
-      const impactsEl = document.getElementById("impactList");
-      const actionsEl = document.getElementById("actionList");
-
-      const riskFieldText = document.getElementById("riskFieldText");
-      const riskDataText  = document.getElementById("riskDataText");
-      const riskRawText   = document.getElementById("riskRawText");
-
-      function clearPanel(){
-        placeEl.textContent = "No selection";
-        munEl.textContent = "Select a barangay polygon on the map.";
-        pillEl.innerHTML = "";
-        setList(impactsEl, ["—"]);
-        setList(actionsEl, ["—"]);
-        riskFieldText.textContent = RISK_FIELD;
-        riskDataText.textContent = "FrostRisk_v1 (Ion)";
-        riskRawText.textContent = "—";
-        setSelectedBorder(null);
-      }
-
-      clearPanel();
-
-      const riskSet = new Set(riskDS.entities.values);
-
-      viewer.selectedEntityChanged.addEventListener((entity) => {
-        if (!entity || !entity.properties || !entity.polygon || !riskSet.has(entity)){
-          clearPanel();
-          return;
-        }
-
-        setSelectedBorder(entity);
+      // =========================
+      // LOAD BOUNDARY + RISK
+      // =========================
+      async function loadBoundary(){
+        const resource = await Cesium.IonResource.fromAssetId(BOUNDARY_ASSET_ID);
+        const ds = await Cesium.GeoJsonDataSource.load(resource, { clampToGround: true });
+        viewer.dataSources.add(ds);
 
         const now = Cesium.JulianDate.now();
-        const barangay = entity.properties?.ADM4_EN?.getValue?.(now) ?? "Unknown barangay";
-        const municipality = entity.properties?.ADM3_EN?.getValue?.(now) ?? "Unknown municipality";
-        const riskCls = entity.properties?.[RISK_FIELD]?.getValue?.(now) ?? "Minimal";
+        for (const e of ds.entities.values){
+          if (!e.polygon) continue;
+          e.polygon.material = Cesium.Color.TRANSPARENT;
+          e.polygon.outline = false;
 
-        placeEl.textContent = barangay;
-        munEl.textContent = `Municipality: ${municipality}`;
-        pillEl.innerHTML = riskPillHtml(riskCls);
+          const hierarchy = e.polygon.hierarchy.getValue(now);
+          if (!hierarchy?.positions?.length) continue;
 
-        riskFieldText.textContent = RISK_FIELD;
-        riskDataText.textContent = "FrostRisk_v1 (Ion)";
-        riskRawText.textContent = riskLabel(riskCls);
+          viewer.entities.add({
+            polyline: {
+              positions: hierarchy.positions,
+              clampToGround: true,
+              width: 2,
+              material: Cesium.Color.WHITE.withAlpha(0.85)
+            }
+          });
 
-        const key = impactKeyFromRisk(riskCls);
-        setList(impactsEl, IMPACTS[key].impacts);
-        setList(actionsEl, IMPACTS[key].actions);
-
-        setActiveTab("impact");
-      });
-    }
-
-    // =========================
-    // RUN
-    // =========================
-    (async () => {
-      try {
-        await loadBoundary();
-        const riskDS = await loadRisk();
-
-        wireUI(riskDS);
-        wireImpactPanel(riskDS);
-
-        await viewer.flyTo(riskDS);
-
-      } catch (err){
-        console.error("LOAD ERROR:", err);
-        alert("Load failed. Press F12 → Console and copy the first red error line.");
+          e.show = false;
+        }
+        return ds;
       }
-    })();
-  </script>
+
+      async function loadRisk(){
+        const resource = await Cesium.IonResource.fromAssetId(RISK_ASSET_ID);
+        const ds = await Cesium.GeoJsonDataSource.load(resource, { clampToGround: true });
+        viewer.dataSources.add(ds);
+
+        const now = Cesium.JulianDate.now();
+        for (const e of ds.entities.values){
+          if (!e.polygon) continue;
+
+          const riskCls =
+            e.properties?.[RISK_FIELD]?.getValue?.(now) ??
+            e.properties?.[RISK_FIELD]?.getValue?.() ??
+            "Minimal";
+
+          e._baseRiskColor = baseRiskColor(riskCls);
+          e.polygon.perPositionHeight = false;
+
+          e._borderEntity = createBorderPolylineForPolygon(e);
+
+          e.name = "";
+          e.description = "";
+        }
+        return ds;
+      }
+
+      // =========================
+      // UI WIRING
+      // =========================
+      function wireUI(riskDS){
+        const slider = document.getElementById("riskSlider");
+        const valueLabel = document.getElementById("riskValue");
+
+        function applyOpacity(alpha){
+          for (const e of riskDS.entities.values){
+            if (!e.polygon) continue;
+            e.polygon.material = new Cesium.ColorMaterialProperty(e._baseRiskColor.withAlpha(alpha));
+          }
+        }
+
+        applyOpacity(Number(slider.value) / 100);
+
+        slider.addEventListener("input", () => {
+          const pct = Number(slider.value);
+          valueLabel.textContent = pct + "%";
+          applyOpacity(pct / 100);
+        });
+
+        const exagSlider = document.getElementById("exagSlider");
+        const exagValue = document.getElementById("exagValue");
+
+        exagSlider.addEventListener("input", () => {
+          const ex = Number(exagSlider.value) / 100;
+          exagValue.textContent = ex.toFixed(2) + "×";
+          viewer.scene.globe.terrainExaggeration = ex;
+        });
+      }
+
+      function wireImpactPanel(riskDS){
+        const placeEl = document.getElementById("impactPlace");
+        const munEl = document.getElementById("impactMun");
+        const pillEl = document.getElementById("impactRiskPill");
+        const impactsEl = document.getElementById("impactList");
+        const actionsEl = document.getElementById("actionList");
+        const riskFieldText = document.getElementById("riskFieldText");
+        const riskDataText  = document.getElementById("riskDataText");
+        const riskRawText   = document.getElementById("riskRawText");
+
+        function clearPanel(){
+          placeEl.textContent = "No selection";
+          munEl.textContent = "Select a barangay polygon on the map.";
+          pillEl.innerHTML = "";
+          setList(impactsEl, ["—"]);
+          setList(actionsEl, ["—"]);
+          riskFieldText.textContent = RISK_FIELD;
+          riskDataText.textContent = "FrostRisk_v1 (Ion)";
+          riskRawText.textContent = "—";
+          setSelectedBorder(null);
+        }
+
+        clearPanel();
+        const riskSet = new Set(riskDS.entities.values);
+
+        viewer.selectedEntityChanged.addEventListener((entity) => {
+          if (!entity || !entity.properties || !entity.polygon || !riskSet.has(entity)){
+            clearPanel();
+            return;
+          }
+
+          setSelectedBorder(entity);
+
+          const now = Cesium.JulianDate.now();
+          const barangay = entity.properties?.ADM4_EN?.getValue?.(now) ?? "Unknown barangay";
+          const municipality = entity.properties?.ADM3_EN?.getValue?.(now) ?? "Unknown municipality";
+          const riskCls = entity.properties?.[RISK_FIELD]?.getValue?.(now) ?? "Minimal";
+
+          placeEl.textContent = barangay;
+          munEl.textContent = `Municipality: ${municipality}`;
+          pillEl.innerHTML = riskPillHtml(riskCls);
+
+          riskFieldText.textContent = RISK_FIELD;
+          riskDataText.textContent = "FrostRisk_v1 (Ion)";
+          riskRawText.textContent = riskLabel(riskCls);
+
+          const key = impactKeyFromRisk(riskCls);
+          setList(impactsEl, IMPACTS[key].impacts);
+          setList(actionsEl, IMPACTS[key].actions);
+
+          setActiveTab("impact");
+        });
+      }
+
+      // =========================
+      // RUN
+      // =========================
+      (async () => {
+        try {
+          await loadBoundary();
+          const riskDS = await loadRisk();
+          wireUI(riskDS);
+          wireImpactPanel(riskDS);
+          await viewer.flyTo(riskDS);
+        } catch (err){
+          console.error("LOAD ERROR:", err);
+          alert("Load failed. Press F12 → Console and copy the first red error line.");
+        }
+      })();
+    </script>
+  </div>
 </body>
 </html>
