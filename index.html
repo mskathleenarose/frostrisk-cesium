@@ -7,7 +7,6 @@
   <script src="https://cesium.com/downloads/cesiumjs/releases/1.116/Build/Cesium/Cesium.js"></script>
   <link href="https://cesium.com/downloads/cesiumjs/releases/1.116/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
 
-  <!-- FrostPH-like font -->
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 
   <style>
@@ -16,14 +15,15 @@
       --brand2:#0b4a8b;
 
       --bg: rgba(255,255,255,0.97);
-      --line: rgba(7,55,99,0.16);
       --line2: rgba(0,0,0,0.10);
       --muted: rgba(11,34,57,.72);
-      --shadow: 0 14px 34px rgba(0,0,0,0.16);
 
       --sidebarW: 400px;
-      --sidebarMin: 56px;   /* width left visible when hidden */
-      --topOffset: 0px;     /* FULL WINDOW FROM TOP */
+      --sidebarMin: 56px;
+      --topOffset: 0px;
+
+      /* ✅ space reserved for Cesium top-right toolbar (home/scene/baselayer) */
+      --cesiumToolbarReserve: 220px; /* adjust if you enable/disable toolbar items */
     }
 
     html, body, #cesiumContainer{
@@ -33,12 +33,15 @@
       font-family:'Open Sans', Arial, sans-serif;
     }
 
-    /* ================= TOP SEARCH BAR (CENTERED) ================= */
+    /* ================= TOP SEARCH BAR (TOP-RIGHT, BESIDE HOME) ================= */
     .topBar{
-      position:absolute; top:10px; left:50%; transform:translateX(-50%);
+      position:absolute;
+      top:10px;
+      right: calc(12px + var(--cesiumToolbarReserve));  /* ✅ dock just left of toolbar */
       z-index:1006;
-      width:min(600px, calc(100vw - 24px));
-      height:40px;
+
+      width: min(420px, calc(100vw - (var(--cesiumToolbarReserve) + 24px)));
+      height:48px;
       border-radius:14px;
       background: rgba(7,55,99,0.92);
       backdrop-filter: blur(10px);
@@ -85,7 +88,7 @@
     .goBtn:hover{ background: rgba(255,255,255,0.22); }
     .goIcon{ width:16px; height:16px; opacity:0.95; }
 
-    /* ================= LEFT SIDEBAR WINDOW (FULL HEIGHT) ================= */
+    /* ================= LEFT WINDOW SIDEBAR (FULL HEIGHT) ================= */
     .sidebar{
       position:absolute;
       top: var(--topOffset);
@@ -93,9 +96,8 @@
       z-index: 1005;
 
       width: var(--sidebarW);
-      height: 100vh;                /* ✅ FULL LEFT WINDOW */
+      height: 100vh;
       background: var(--bg);
-      box-shadow: 0 0 0 rgba(0,0,0,0.0);  /* looks like a real pane not floating */
 
       border-right: 1px solid var(--line2);
       display:flex;
@@ -105,13 +107,10 @@
       transform: translateX(0);
       transition: transform .22s ease;
     }
-
-    /* slide left, keep a slim strip visible */
     .sidebar.collapsed{
       transform: translateX(calc(-1 * (var(--sidebarW) - var(--sidebarMin))));
     }
 
-    /* Header (like FrostPH card header) */
     .sideHeader{
       padding: 14px 14px 10px;
       background: linear-gradient(135deg, var(--brand2), var(--brand));
@@ -140,7 +139,6 @@
     }
     .sideBtn:hover{ background: rgba(255,255,255,0.24); }
 
-    /* Tabs */
     .tabs{
       display:flex;
       gap:8px;
@@ -173,7 +171,6 @@
       flex: 1 1 auto;
       color:#111;
     }
-
     .tabPane{ display:none; }
     .tabPane.active{ display:block; }
 
@@ -184,7 +181,6 @@
       background:#fff;
       box-shadow: 0 8px 18px rgba(0,0,0,0.05);
     }
-
     .row{ margin-top:10px; }
     input[type="range"]{ width:100%; }
 
@@ -243,7 +239,7 @@
       flex:0 0 auto;
     }
 
-    /* ===== Divider handle (click to hide/show) ===== */
+    /* Divider handle */
     .dividerHandle{
       position:absolute;
       top: 0;
@@ -284,7 +280,7 @@
 <body>
   <div id="cesiumContainer"></div>
 
-  <!-- ================= TOP SEARCH BAR ================= -->
+  <!-- ================= TOP SEARCH BAR (TOP-RIGHT) ================= -->
   <div class="topBar">
     <div class="brand">
       <span class="flake">❄️</span>
@@ -324,14 +320,12 @@
       </div>
     </div>
 
-    <!-- Tabs -->
     <div class="tabs">
       <button class="tabBtn active" id="tabBtnRisk">Risk Level</button>
       <button class="tabBtn" id="tabBtnImpact">Impact Guide</button>
     </div>
 
     <div class="sideBody">
-      <!-- ===== TAB: RISK LEVEL ===== -->
       <div class="tabPane active" id="tabRisk">
         <div class="sectionBlock">
           <div style="font-weight:800; color:#0b2239;">Map controls</div>
@@ -359,18 +353,8 @@
             <span class="swatch" style="background:#1565c0"></span>Severe
           </div>
         </div>
-
-        <div class="sectionBlock" style="margin-top:12px;">
-          <div style="font-weight:800; color:#0b2239;">How to use</div>
-          <div class="small" style="margin-top:6px; line-height:1.45;">
-            • Use the search bar to fly to a place.<br>
-            • Click a barangay polygon to highlight its boundary and open the Impact Guide tab automatically.<br>
-            • Adjust opacity to compare base map vs risk overlay.
-          </div>
-        </div>
       </div>
 
-      <!-- ===== TAB: IMPACT GUIDE ===== -->
       <div class="tabPane" id="tabImpact">
         <div class="sectionBlock">
           <div class="placeTitle" id="impactPlace">No selection</div>
@@ -431,21 +415,18 @@
     // =========================
     // CONFIG
     // =========================
-    const RISK_ASSET_ID = 4498466;         // FrostRisk_v1 (geojson)
-    const BOUNDARY_ASSET_ID = 4076193;     // Benguet Municipality (GeoJSON)
+    const RISK_ASSET_ID = 4498466;
+    const BOUNDARY_ASSET_ID = 4076193;
     const RISK_FIELD = "RiskCls";
 
-    // Default barangay border (thin but visible)
     const BORDER_DEFAULT = {
       width: 2,
       color: Cesium.Color.WHITE.withAlpha(0.78),
       glowPower: 0.10
     };
-
-    // ✅ Stronger selected glow (more visible)
     const BORDER_SELECTED = {
       width: 7,
-      color: Cesium.Color.fromCssColorString("#00E5FF").withAlpha(0.95), // bright cyan
+      color: Cesium.Color.fromCssColorString("#00E5FF").withAlpha(0.95),
       glowPower: 0.45
     };
 
@@ -454,14 +435,8 @@
       orientation: { heading: Cesium.Math.toRadians(20), pitch: Cesium.Math.toRadians(-45), roll: 0 }
     };
 
-    // =========================
-    // TOKEN
-    // =========================
     Cesium.Ion.defaultAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJmNDNkZTM0OS00YjJjLTQ1NGYtODY3OC04NGJkNTMyNTVjMzciLCJpZCI6MzU5OTE1LCJpYXQiOjE3NzA2MTk2NTR9.7AMr5xm4NqjOYC-WuCZv1OHw-JwpQsQaXCOl01SE0_0";
 
-    // =========================
-    // VIEWER
-    // =========================
     const viewer = new Cesium.Viewer("cesiumContainer", {
       terrain: Cesium.Terrain.fromWorldTerrain(),
       animation: false,
@@ -487,7 +462,7 @@
     });
 
     // =========================
-    // TOP SEARCH BAR
+    // SEARCH
     // =========================
     const geocoderVM = new Cesium.GeocoderViewModel({ scene: viewer.scene });
 
@@ -508,7 +483,7 @@
     });
 
     // =========================
-    // SIDEBAR HIDE/SHOW
+    // SIDEBAR TOGGLE
     // =========================
     const sidebar = document.getElementById("sidebar");
     const sidebarToggleBtn = document.getElementById("sidebarToggleBtn");
@@ -518,17 +493,8 @@
       sidebar.classList.toggle("collapsed", collapsed);
       sidebarToggleBtn.textContent = collapsed ? "Show" : "Hide";
     }
-    sidebarToggleBtn.addEventListener("click", () => {
-      setSidebarCollapsed(!sidebar.classList.contains("collapsed"));
-    });
-    dividerHandle.addEventListener("click", () => {
-      setSidebarCollapsed(!sidebar.classList.contains("collapsed"));
-    });
-
-    // Optional hotkey
-    window.addEventListener("keydown", (e) => {
-      if (e.key.toLowerCase() === "p") setSidebarCollapsed(!sidebar.classList.contains("collapsed"));
-    });
+    sidebarToggleBtn.addEventListener("click", () => setSidebarCollapsed(!sidebar.classList.contains("collapsed")));
+    dividerHandle.addEventListener("click", () => setSidebarCollapsed(!sidebar.classList.contains("collapsed")));
 
     // =========================
     // TABS
@@ -612,26 +578,15 @@
       }
     }
 
-    // =========================
-    // IMPACT CONTENT
-    // =========================
     const IMPACTS = {
-      minimal: {
-        impacts: ["Frost is unlikely based on current classification.", "Cold pockets may still occur in low-lying areas."],
-        actions: ["Continue routine monitoring of advisories.", "Check early morning temperature observations when available."]
-      },
-      mild: {
-        impacts: ["Light frost possible in exposed areas (valleys/slopes).", "Minor leaf scorching on sensitive crops and seedlings.", "Possible slowdown in growth for leafy vegetables."],
-        actions: ["Cover seedlings (plastic/row cover/net) overnight.", "Light irrigation before sunrise (if feasible).", "Monitor early morning temperatures and advisories."]
-      },
-      moderate: {
-        impacts: ["Visible frost formation possible.", "Leaf burn and quality reduction (leafy veg/cabbage outer leaves).", "Reduced yield potential for potato and other highland crops."],
-        actions: ["Use row covers/tunnels; prioritize high-value plots.", "Irrigate strategically during frost window (where applicable).", "Avoid late-day nitrogen-heavy fertilization before cold nights."]
-      },
-      severe: {
-        impacts: ["High likelihood of damaging frost; tissue injury/dieback possible.", "Major yield loss risk for potato, cabbage, and seedlings.", "Severe quality downgrade (burned leaves/heads, stunted growth)."],
-        actions: ["Harvest mature crops early if a severe frost night is expected.", "Deploy protective covering + irrigation/windbreaks if available.", "Document damage immediately for reporting/insurance claims."]
-      }
+      minimal: { impacts: ["Frost is unlikely based on current classification.", "Cold pockets may still occur in low-lying areas."],
+                 actions: ["Continue routine monitoring of advisories.", "Check early morning temperature observations when available."] },
+      mild:    { impacts: ["Light frost possible in exposed areas (valleys/slopes).", "Minor leaf scorching on sensitive crops and seedlings.", "Possible slowdown in growth for leafy vegetables."],
+                 actions: ["Cover seedlings (plastic/row cover/net) overnight.", "Light irrigation before sunrise (if feasible).", "Monitor early morning temperatures and advisories."] },
+      moderate:{ impacts: ["Visible frost formation possible.", "Leaf burn and quality reduction (leafy veg/cabbage outer leaves).", "Reduced yield potential for potato and other highland crops."],
+                 actions: ["Use row covers/tunnels; prioritize high-value plots.", "Irrigate strategically during frost window (where applicable).", "Avoid late-day nitrogen-heavy fertilization before cold nights."] },
+      severe:  { impacts: ["High likelihood of damaging frost; tissue injury/dieback possible.", "Major yield loss risk for potato, cabbage, and seedlings.", "Severe quality downgrade (burned leaves/heads, stunted growth)."],
+                 actions: ["Harvest mature crops early if a severe frost night is expected.", "Deploy protective covering + irrigation/windbreaks if available.", "Document damage immediately for reporting/insurance claims."] }
     };
 
     function impactKeyFromRisk(riskRaw){
@@ -644,9 +599,6 @@
       return "minimal";
     }
 
-    // =========================
-    // BORDER BUILDER + HIGHLIGHTER
-    // =========================
     function makeGlowMaterial(color, glowPower){
       return new Cesium.PolylineGlowMaterialProperty({ glowPower, color });
     }
@@ -657,7 +609,7 @@
       if (!hierarchy || !hierarchy.positions || hierarchy.positions.length < 2) return null;
 
       const positions = hierarchy.positions.slice();
-      positions.push(hierarchy.positions[0]); // close loop
+      positions.push(hierarchy.positions[0]);
 
       return viewer.entities.add({
         polyline: {
@@ -687,24 +639,19 @@
       }
     }
 
-    // =========================
-    // LOAD BOUNDARY
-    // =========================
     async function loadBoundary(){
       const resource = await Cesium.IonResource.fromAssetId(BOUNDARY_ASSET_ID);
       const ds = await Cesium.GeoJsonDataSource.load(resource, { clampToGround: true });
       viewer.dataSources.add(ds);
 
       const now = Cesium.JulianDate.now();
-
       for (const e of ds.entities.values){
         if (!e.polygon) continue;
-
         e.polygon.material = Cesium.Color.TRANSPARENT;
         e.polygon.outline = false;
 
         const hierarchy = e.polygon.hierarchy.getValue(now);
-        if (!hierarchy || !hierarchy.positions || hierarchy.positions.length < 2) continue;
+        if (!hierarchy?.positions?.length) continue;
 
         viewer.entities.add({
           polyline: {
@@ -720,16 +667,12 @@
       return ds;
     }
 
-    // =========================
-    // LOAD RISK LAYER
-    // =========================
     async function loadRisk(){
       const resource = await Cesium.IonResource.fromAssetId(RISK_ASSET_ID);
       const ds = await Cesium.GeoJsonDataSource.load(resource, { clampToGround: true });
       viewer.dataSources.add(ds);
 
       const now = Cesium.JulianDate.now();
-
       for (const e of ds.entities.values){
         if (!e.polygon) continue;
 
@@ -752,9 +695,6 @@
       return ds;
     }
 
-    // =========================
-    // UI (opacity + exaggeration)
-    // =========================
     function wireUI(riskDS){
       const slider = document.getElementById("riskSlider");
       const valueLabel = document.getElementById("riskValue");
@@ -776,7 +716,6 @@
 
       const exagSlider = document.getElementById("exagSlider");
       const exagValue = document.getElementById("exagValue");
-
       exagSlider.addEventListener("input", () => {
         const ex = Number(exagSlider.value) / 100;
         exagValue.textContent = ex.toFixed(2) + "×";
@@ -784,16 +723,12 @@
       });
     }
 
-    // =========================
-    // IMPACT WIRING (+ auto switch to Impact tab)
-    // =========================
     function wireImpactPanel(riskDS){
       const placeEl = document.getElementById("impactPlace");
       const munEl = document.getElementById("impactMun");
       const pillEl = document.getElementById("impactRiskPill");
       const impactsEl = document.getElementById("impactList");
       const actionsEl = document.getElementById("actionList");
-
       const riskFieldText = document.getElementById("riskFieldText");
       const riskDataText  = document.getElementById("riskDataText");
       const riskRawText   = document.getElementById("riskRawText");
@@ -820,7 +755,6 @@
           return;
         }
 
-        // ✅ highlight outline strongly
         setSelectedBorder(entity);
 
         const now = Cesium.JulianDate.now();
@@ -840,14 +774,10 @@
         setList(impactsEl, IMPACTS[key].impacts);
         setList(actionsEl, IMPACTS[key].actions);
 
-        // ✅ auto-open Impact Guide tab
         setActiveTab("impact");
       });
     }
 
-    // =========================
-    // RUN
-    // =========================
     (async () => {
       try {
         await loadBoundary();
@@ -857,7 +787,6 @@
         wireImpactPanel(riskDS);
 
         await viewer.flyTo(riskDS);
-
       } catch (err){
         console.error("LOAD ERROR:", err);
         alert("Load failed. Press F12 → Console and copy the first red error line.");
