@@ -15,15 +15,15 @@
       --brand:#073763;
       --brand2:#0b4a8b;
 
-      --bg: rgba(255,255,255,0.96);
+      --bg: rgba(255,255,255,0.97);
       --line: rgba(7,55,99,0.16);
       --line2: rgba(0,0,0,0.10);
       --muted: rgba(11,34,57,.72);
       --shadow: 0 14px 34px rgba(0,0,0,0.16);
 
-      --sidebarW: 390px;
-      --sidebarMin: 56px;   /* width when hidden */
-      --topOffset: 68px;    /* below search */
+      --sidebarW: 400px;
+      --sidebarMin: 56px;   /* width left visible when hidden */
+      --topOffset: 0px;     /* FULL WINDOW FROM TOP */
     }
 
     html, body, #cesiumContainer{
@@ -85,7 +85,7 @@
     .goBtn:hover{ background: rgba(255,255,255,0.22); }
     .goIcon{ width:16px; height:16px; opacity:0.95; }
 
-    /* ================= LEFT SIDEBAR WINDOW (SPLIT + DIVIDER) ================= */
+    /* ================= LEFT SIDEBAR WINDOW (FULL HEIGHT) ================= */
     .sidebar{
       position:absolute;
       top: var(--topOffset);
@@ -93,12 +93,9 @@
       z-index: 1005;
 
       width: var(--sidebarW);
-      height: calc(100vh - (var(--topOffset) + 12px));
+      height: 100vh;                /* ✅ FULL LEFT WINDOW */
       background: var(--bg);
-      box-shadow: var(--shadow);
-
-      border-top-right-radius: 18px;
-      border-bottom-right-radius: 18px;
+      box-shadow: 0 0 0 rgba(0,0,0,0.0);  /* looks like a real pane not floating */
 
       border-right: 1px solid var(--line2);
       display:flex;
@@ -106,17 +103,17 @@
       overflow:hidden;
 
       transform: translateX(0);
-      transition: transform .22s ease, width .22s ease;
+      transition: transform .22s ease;
     }
 
-    /* “Hidden to the left”, leaving a slim strip with handle visible */
+    /* slide left, keep a slim strip visible */
     .sidebar.collapsed{
       transform: translateX(calc(-1 * (var(--sidebarW) - var(--sidebarMin))));
     }
 
-    /* Header like FrostPH cards */
+    /* Header (like FrostPH card header) */
     .sideHeader{
-      padding: 12px 14px 10px;
+      padding: 14px 14px 10px;
       background: linear-gradient(135deg, var(--brand2), var(--brand));
       color:#fff;
       display:flex;
@@ -126,23 +123,10 @@
       flex: 0 0 auto;
       border-bottom: 1px solid rgba(255,255,255,0.12);
     }
-    .sideHeader b{
-      font-size:14px;
-      letter-spacing:.2px;
-      font-weight: 800;
-    }
-    .sideHeader .sub{
-      font-size:12px;
-      opacity:.92;
-      margin-top:2px;
-      line-height: 1.25;
-    }
+    .sideHeader b{ font-size:14px; letter-spacing:.2px; font-weight: 800; }
+    .sideHeader .sub{ font-size:12px; opacity:.92; margin-top:2px; line-height: 1.25; }
 
-    .sideHeaderBtns{
-      display:flex;
-      align-items:center;
-      gap:8px;
-    }
+    .sideHeaderBtns{ display:flex; align-items:center; gap:8px; }
     .sideBtn{
       border:none;
       background: rgba(255,255,255,0.18);
@@ -156,12 +140,42 @@
     }
     .sideBtn:hover{ background: rgba(255,255,255,0.24); }
 
+    /* Tabs */
+    .tabs{
+      display:flex;
+      gap:8px;
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+      background: rgba(0,0,0,0.02);
+      flex: 0 0 auto;
+    }
+    .tabBtn{
+      flex:1;
+      border:1px solid rgba(7,55,99,0.16);
+      background: #fff;
+      color: rgba(11,34,57,.92);
+      padding: 8px 10px;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 12px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .tabBtn.active{
+      background: rgba(11,74,139,0.10);
+      border-color: rgba(11,74,139,0.28);
+      color: rgba(7,55,99,1);
+    }
+
     .sideBody{
       padding: 12px 14px;
       overflow-y: auto;
       flex: 1 1 auto;
       color:#111;
     }
+
+    .tabPane{ display:none; }
+    .tabPane.active{ display:block; }
 
     .sectionBlock{
       border:1px solid rgba(0,0,0,0.08);
@@ -229,11 +243,11 @@
       flex:0 0 auto;
     }
 
-    /* ===== Divider handle (the “split” feel) ===== */
+    /* ===== Divider handle (click to hide/show) ===== */
     .dividerHandle{
       position:absolute;
       top: 0;
-      right: -10px;   /* overlap map side slightly */
+      right: -10px;
       height: 100%;
       width: 20px;
       cursor: pointer;
@@ -244,9 +258,9 @@
     }
     .dividerPill{
       width: 10px;
-      height: 78px;
+      height: 86px;
       border-radius: 999px;
-      background: rgba(7,55,99,0.20);
+      background: rgba(7,55,99,0.18);
       border: 1px solid rgba(7,55,99,0.22);
       box-shadow: 0 8px 18px rgba(0,0,0,0.10);
       display:flex;
@@ -258,15 +272,11 @@
     .dividerPill span{
       font-size: 14px;
       font-weight: 900;
-      color: rgba(7,55,99,0.85);
-      transform: translateX(0);
+      color: rgba(7,55,99,0.88);
       line-height: 1;
     }
-    .sidebar.collapsed .dividerPill span{
-      transform: rotate(180deg);
-    }
+    .sidebar.collapsed .dividerPill span{ transform: rotate(180deg); }
 
-    /* Cesium credits */
     .cesium-widget-credits{ right:12px !important; bottom:6px !important; }
   </style>
 </head>
@@ -298,9 +308,8 @@
     </div>
   </div>
 
-  <!-- ================= LEFT SIDEBAR WINDOW ================= -->
+  <!-- ================= LEFT WINDOW SIDEBAR ================= -->
   <div class="sidebar" id="sidebar">
-    <!-- Divider handle (click to hide/show) -->
     <div class="dividerHandle" id="dividerHandle" title="Hide/Show sidebar">
       <div class="dividerPill"><span>❮</span></div>
     </div>
@@ -308,94 +317,113 @@
     <div class="sideHeader">
       <div>
         <b>FrostPH Risk Map (3D)</b>
-        <div class="sub">Controls + Impact Guide • Click a barangay polygon</div>
+        <div class="sub">Use tabs • Click barangay to see impacts</div>
       </div>
       <div class="sideHeaderBtns">
         <button class="sideBtn" id="sidebarToggleBtn">Hide</button>
       </div>
     </div>
 
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tabBtn active" id="tabBtnRisk">Risk Level</button>
+      <button class="tabBtn" id="tabBtnImpact">Impact Guide</button>
+    </div>
+
     <div class="sideBody">
-      <!-- Controls -->
-      <div class="sectionBlock">
-        <div style="font-weight:800; color:#0b2239;">Map controls</div>
-        <div class="small" style="margin-top:4px;">
-          drag rotate • right-drag/Ctrl-drag pan • scroll zoom • tilt in 3D
+      <!-- ===== TAB: RISK LEVEL ===== -->
+      <div class="tabPane active" id="tabRisk">
+        <div class="sectionBlock">
+          <div style="font-weight:800; color:#0b2239;">Map controls</div>
+          <div class="small" style="margin-top:4px;">
+            drag rotate • right-drag/Ctrl-drag pan • scroll zoom • tilt in 3D
+          </div>
+
+          <div class="row">
+            <b>Risk overlay opacity</b><br>
+            <input id="riskSlider" type="range" min="0" max="100" value="65">
+            <div class="small">Opacity: <span id="riskValue">65%</span></div>
+          </div>
+
+          <div class="row">
+            <b>Terrain exaggeration</b><br>
+            <input id="exagSlider" type="range" min="100" max="250" value="160">
+            <div class="small">Exaggeration: <span id="exagValue">1.60×</span></div>
+          </div>
+
+          <div class="legend">
+            <b>Legend</b><br>
+            <span class="swatch" style="background:#a5d6a7"></span>Minimal<br>
+            <span class="swatch" style="background:#2e7d32"></span>Mild<br>
+            <span class="swatch" style="background:#feef01"></span>Moderate<br>
+            <span class="swatch" style="background:#1565c0"></span>Severe
+          </div>
         </div>
 
-        <div class="row">
-          <b>Risk overlay opacity</b><br>
-          <input id="riskSlider" type="range" min="0" max="100" value="65">
-          <div class="small">Opacity: <span id="riskValue">65%</span></div>
-        </div>
-
-        <div class="row">
-          <b>Terrain exaggeration</b><br>
-          <input id="exagSlider" type="range" min="100" max="250" value="160">
-          <div class="small">Exaggeration: <span id="exagValue">1.60×</span></div>
-        </div>
-
-        <div class="legend">
-          <b>Legend</b><br>
-          <span class="swatch" style="background:#a5d6a7"></span>Minimal<br>
-          <span class="swatch" style="background:#2e7d32"></span>Mild<br>
-          <span class="swatch" style="background:#feef01"></span>Moderate<br>
-          <span class="swatch" style="background:#1565c0"></span>Severe
+        <div class="sectionBlock" style="margin-top:12px;">
+          <div style="font-weight:800; color:#0b2239;">How to use</div>
+          <div class="small" style="margin-top:6px; line-height:1.45;">
+            • Use the search bar to fly to a place.<br>
+            • Click a barangay polygon to highlight its boundary and open the Impact Guide tab automatically.<br>
+            • Adjust opacity to compare base map vs risk overlay.
+          </div>
         </div>
       </div>
 
-      <!-- Impact Guide -->
-      <div class="sectionBlock" style="margin-top:12px;">
-        <div class="placeTitle" id="impactPlace">No selection</div>
-        <div class="muted" id="impactMun">Select a barangay polygon on the map.</div>
+      <!-- ===== TAB: IMPACT GUIDE ===== -->
+      <div class="tabPane" id="tabImpact">
+        <div class="sectionBlock">
+          <div class="placeTitle" id="impactPlace">No selection</div>
+          <div class="muted" id="impactMun">Select a barangay polygon on the map.</div>
 
-        <div class="grid2">
-          <div>
-            <div style="font-weight:800; color:#0b2239;">Frost Risk Level</div>
-            <div class="muted" style="margin-top:2px;">Interpretation for farmers</div>
+          <div class="grid2">
+            <div>
+              <div style="font-weight:800; color:#0b2239;">Frost Risk Level</div>
+              <div class="muted" style="margin-top:2px;">Interpretation for farmers</div>
+            </div>
+            <div id="impactRiskPill"></div>
           </div>
-          <div id="impactRiskPill"></div>
-        </div>
 
-        <div class="miniMeta">
-          <div>
-            <b>RISK FIELD</b>
-            <div class="muted" id="riskFieldText">RiskCls</div>
+          <div class="miniMeta">
+            <div>
+              <b>RISK FIELD</b>
+              <div class="muted" id="riskFieldText">RiskCls</div>
+            </div>
+            <div style="text-align:right;">
+              <b>DATA</b>
+              <div class="muted" id="riskDataText">FrostRisk_v1 (Ion)</div>
+            </div>
           </div>
-          <div style="text-align:right;">
-            <b>DATA</b>
-            <div class="muted" id="riskDataText">FrostRisk_v1 (Ion)</div>
+
+          <div class="muted" style="margin-top:8px;">
+            Raw value: <b id="riskRawText">—</b>
           </div>
-        </div>
 
-        <div class="muted" style="margin-top:8px;">
-          Raw value: <b id="riskRawText">—</b>
-        </div>
+          <div class="section">
+            <div class="sectionTitle"><span class="icoChip">⚠️</span><span>Possible impacts</span></div>
+            <ul class="impactList" id="impactList"><li>—</li></ul>
+          </div>
 
-        <div class="section">
-          <div class="sectionTitle"><span class="icoChip">⚠️</span><span>Possible impacts</span></div>
-          <ul class="impactList" id="impactList"><li>—</li></ul>
-        </div>
+          <div class="section">
+            <div class="sectionTitle"><span class="icoChip">✅</span><span>Recommended actions</span></div>
+            <ul class="impactList" id="actionList"><li>—</li></ul>
+          </div>
 
-        <div class="section">
-          <div class="sectionTitle"><span class="icoChip">✅</span><span>Recommended actions</span></div>
-          <ul class="impactList" id="actionList"><li>—</li></ul>
-        </div>
-
-        <div class="section">
-          <div class="sectionTitle"><span class="icoChip">📸</span><span>Insurance & reporting</span></div>
-          <ul class="impactList" id="insList">
-            <li>Report crop damage within <b>7 days</b> to MAO/PCIC (if insured).</li>
-            <li>Record farm location + barangay.</li>
-            <li>Take clear photos (before/after) with date/time.</li>
-            <li>Keep notes on affected crop, area, and estimated loss.</li>
-          </ul>
+          <div class="section">
+            <div class="sectionTitle"><span class="icoChip">📸</span><span>Insurance & reporting</span></div>
+            <ul class="impactList" id="insList">
+              <li>Report crop damage within <b>7 days</b> to MAO/PCIC (if insured).</li>
+              <li>Record farm location + barangay.</li>
+              <li>Take clear photos (before/after) with date/time.</li>
+              <li>Keep notes on affected crop, area, and estimated loss.</li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
 
     <div class="sideFooter">
-      Tip: Click a barangay to highlight its border (glow).
+      Tip: Click a barangay to highlight its border (strong glow).
     </div>
   </div>
 
@@ -407,8 +435,19 @@
     const BOUNDARY_ASSET_ID = 4076193;     // Benguet Municipality (GeoJSON)
     const RISK_FIELD = "RiskCls";
 
-    const BORDER_DEFAULT = { width: 2, color: Cesium.Color.WHITE.withAlpha(0.78), glowPower: 0.08 };
-    const BORDER_SELECTED = { width: 4, color: Cesium.Color.WHITE.withAlpha(0.98), glowPower: 0.22 };
+    // Default barangay border (thin but visible)
+    const BORDER_DEFAULT = {
+      width: 2,
+      color: Cesium.Color.WHITE.withAlpha(0.78),
+      glowPower: 0.10
+    };
+
+    // ✅ Stronger selected glow (more visible)
+    const BORDER_SELECTED = {
+      width: 7,
+      color: Cesium.Color.fromCssColorString("#00E5FF").withAlpha(0.95), // bright cyan
+      glowPower: 0.45
+    };
 
     const START = {
       destination: Cesium.Cartesian3.fromDegrees(120.7, 16.6, 65000),
@@ -463,14 +502,13 @@
         input.placeholder = "No results. Try 'Atok, Benguet' or 'Baguio City'";
       }
     }
-
     document.getElementById("searchBtn").addEventListener("click", runSearch);
     document.getElementById("searchInput").addEventListener("keydown", (ev) => {
       if (ev.key === "Enter") runSearch();
     });
 
     // =========================
-    // SIDEBAR HIDE/SHOW (DIVIDER + BUTTON)
+    // SIDEBAR HIDE/SHOW
     // =========================
     const sidebar = document.getElementById("sidebar");
     const sidebarToggleBtn = document.getElementById("sidebarToggleBtn");
@@ -479,9 +517,7 @@
     function setSidebarCollapsed(collapsed){
       sidebar.classList.toggle("collapsed", collapsed);
       sidebarToggleBtn.textContent = collapsed ? "Show" : "Hide";
-      // Divider arrow flips via CSS on .collapsed
     }
-
     sidebarToggleBtn.addEventListener("click", () => {
       setSidebarCollapsed(!sidebar.classList.contains("collapsed"));
     });
@@ -489,10 +525,28 @@
       setSidebarCollapsed(!sidebar.classList.contains("collapsed"));
     });
 
-    // Optional hotkey: P to toggle
+    // Optional hotkey
     window.addEventListener("keydown", (e) => {
       if (e.key.toLowerCase() === "p") setSidebarCollapsed(!sidebar.classList.contains("collapsed"));
     });
+
+    // =========================
+    // TABS
+    // =========================
+    const tabBtnRisk = document.getElementById("tabBtnRisk");
+    const tabBtnImpact = document.getElementById("tabBtnImpact");
+    const tabRisk = document.getElementById("tabRisk");
+    const tabImpact = document.getElementById("tabImpact");
+
+    function setActiveTab(which){
+      const isRisk = which === "risk";
+      tabBtnRisk.classList.toggle("active", isRisk);
+      tabBtnImpact.classList.toggle("active", !isRisk);
+      tabRisk.classList.toggle("active", isRisk);
+      tabImpact.classList.toggle("active", !isRisk);
+    }
+    tabBtnRisk.addEventListener("click", () => setActiveTab("risk"));
+    tabBtnImpact.addEventListener("click", () => setActiveTab("impact"));
 
     // =========================
     // HELPERS
@@ -663,7 +717,6 @@
 
         e.show = false;
       }
-
       return ds;
     }
 
@@ -696,7 +749,6 @@
         e.name = "";
         e.description = "";
       }
-
       return ds;
     }
 
@@ -733,7 +785,7 @@
     }
 
     // =========================
-    // IMPACT WIRING (+ border highlight)
+    // IMPACT WIRING (+ auto switch to Impact tab)
     // =========================
     function wireImpactPanel(riskDS){
       const placeEl = document.getElementById("impactPlace");
@@ -768,6 +820,7 @@
           return;
         }
 
+        // ✅ highlight outline strongly
         setSelectedBorder(entity);
 
         const now = Cesium.JulianDate.now();
@@ -786,6 +839,9 @@
         const key = impactKeyFromRisk(riskCls);
         setList(impactsEl, IMPACTS[key].impacts);
         setList(actionsEl, IMPACTS[key].actions);
+
+        // ✅ auto-open Impact Guide tab
+        setActiveTab("impact");
       });
     }
 
