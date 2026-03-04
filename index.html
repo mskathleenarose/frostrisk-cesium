@@ -10,7 +10,7 @@
   <style>
     html, body, #cesiumContainer { width:100%; height:100%; margin:0; padding:0; overflow:hidden; }
 
-    /* ================= TOP SEARCH BAR (smaller / tighter) ================= */
+    /* ================= TOP SEARCH BAR (SHORT + CENTERED) ================= */
     .topBar{
       position:absolute;
       top:10px;
@@ -18,8 +18,8 @@
       transform:translateX(-50%);
       z-index:1005;
 
-      /* ✅ smaller overall */
-      width:min(860px, calc(100vw - 24px));
+      /* ✅ short centered bar */
+      width:min(760px, calc(100vw - 24px));
       height:48px;
       border-radius:14px;
 
@@ -48,13 +48,13 @@
       letter-spacing:.3px;
       white-space:nowrap;
     }
-    .brand .flame{ font-size:16px; line-height:1; }
+    .brand .flake{ font-size:16px; line-height:1; }
     .brand .name{ font-size:16px; }
     .brand .name span{ opacity:0.9; font-weight:900; }
 
     .searchWrap{
       flex:1;
-      height:34px;                 /* ✅ smaller */
+      height:34px;
       border-radius:999px;
       background:rgba(255,255,255,0.06);
       border:1px solid rgba(255,255,255,0.10);
@@ -63,9 +63,8 @@
       padding:0 12px;
       gap:8px;
     }
-    .searchIcon{
-      width:16px; height:16px; opacity:0.9; flex:0 0 auto;
-    }
+    .searchIcon{ width:16px; height:16px; opacity:0.9; flex:0 0 auto; }
+
     .searchInput{
       flex:1;
       height:100%;
@@ -73,13 +72,13 @@
       outline:none;
       background:transparent;
       color:#fff;
-      font-size:14px;              /* ✅ smaller */
+      font-size:14px;
       font-weight:700;
     }
     .searchInput::placeholder{ color: rgba(255,255,255,0.72); font-weight:600; }
 
     .goBtn{
-      width:38px;                  /* ✅ smaller */
+      width:38px;
       height:34px;
       border:none;
       border-radius:999px;
@@ -96,7 +95,7 @@
     /* ================= LEFT CONTROL PANEL ================= */
     .panel{
       position:absolute;
-      top:68px; /* ⬅️ a bit closer since topBar is smaller */
+      top:68px; /* pushed down under top bar */
       left:12px;
       z-index:999;
       background:rgba(255,255,255,0.95);
@@ -132,10 +131,10 @@
     /* ================= SINGLE RIGHT INFO PANEL (SCROLL) ================= */
     .impactPanel{
       position:absolute;
-      top:68px; /* ⬅️ match left */
+      top:68px;
       right:12px;
       z-index:999;
-      width:360px;
+      width:380px;
       max-width: calc(100vw - 24px);
       background:rgba(255,255,255,0.96);
       border-radius:16px;
@@ -265,6 +264,22 @@
       border:1px solid rgba(0,0,0,0.10);
       background:rgba(0,0,0,0.03);
     }
+
+    /* ✅ Emoji / PNG-style icon chip (works with emojis; can swap to <img>) */
+    .icoChip{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:26px;
+      height:26px;
+      border-radius:10px;
+      border:1px solid rgba(0,0,0,0.12);
+      background:rgba(0,0,0,0.03);
+      font-size:16px;
+      line-height:1;
+      flex:0 0 auto;
+    }
+
     .impactList{
       margin:0;
       padding-left:18px;
@@ -282,15 +297,6 @@
       flex:0 0 auto;
     }
 
-    /* ================= SEARCH BAR SIZE ================= */
-    .cesium-viewer-geocoderContainer {
-      width: 180px !important;
-    }
-
-    .cesium-geocoder-input {
-      width: 180px !important;
-    }
-
     .cesium-widget-credits{ right:12px !important; bottom:6px !important; }
   </style>
 </head>
@@ -301,7 +307,7 @@
   <!-- ================= TOP SEARCH BAR ================= -->
   <div class="topBar">
     <div class="brand">
-      <span class="flame">❄️</span>
+      <span class="flake">❄️</span>
       <div class="name">FROST<span>PH</span></div>
     </div>
 
@@ -401,20 +407,31 @@
         </div>
 
         <div class="section">
-          <div class="sectionTitle"><span class="icon">!</span> Possible impacts</div>
+          <div class="sectionTitle">
+            <span class="icoChip">⚠️</span>
+            <span>Possible impacts</span>
+          </div>
           <ul class="impactList" id="impactList"><li>—</li></ul>
         </div>
 
         <div class="section">
-          <div class="sectionTitle"><span class="icon">✓</span> Recommended actions</div>
+          <div class="sectionTitle">
+            <span class="icoChip">✅</span>
+            <span>Recommended actions</span>
+          </div>
           <ul class="impactList" id="actionList"><li>—</li></ul>
         </div>
 
         <div class="section">
-          <div class="sectionTitle"><span class="icon">₱</span> Insurance & reporting</div>
+          <div class="sectionTitle">
+            <span class="icoChip">📸</span>
+            <span>Insurance & reporting</span>
+          </div>
           <ul class="impactList" id="insList">
-            <li>Report crop damage within <b>7 days</b> to MAO/PCIC (if insured).</li>
-            <li>Document with photos, date/time, and farm location.</li>
+            <li>⏱️ Report crop damage within <b>7 days</b> to MAO/PCIC (if insured).</li>
+            <li>📍 Record farm location + barangay.</li>
+            <li>📷 Take clear photos (before/after) with date/time.</li>
+            <li>📝 Keep notes on affected crop, area, and estimated loss.</li>
           </ul>
         </div>
       </div>
@@ -429,9 +446,13 @@
     // =========================
     // CONFIG
     // =========================
-    const RISK_ASSET_ID = 4498466;         // ✅ FrostRisk_v1 (geojson)
+    const RISK_ASSET_ID = 4498466;         // FrostRisk_v1 (geojson)
     const BOUNDARY_ASSET_ID = 4076193;     // Benguet Municipality (GeoJSON)
     const RISK_FIELD = "RiskCls";          // risk column
+
+    // ✅ thin outline for each barangay polygon from the risk layer
+    const BARANGAY_OUTLINE_WIDTH = 1;      // "thin"
+    const BARANGAY_OUTLINE_COLOR = Cesium.Color.WHITE.withAlpha(0.55);
 
     const START = {
       destination: Cesium.Cartesian3.fromDegrees(120.7, 16.6, 65000),
@@ -477,9 +498,7 @@
     // =========================
     // TOP SEARCH BAR (Cesium GeocoderViewModel)
     // =========================
-    const geocoderVM = new Cesium.GeocoderViewModel({
-      scene: viewer.scene
-    });
+    const geocoderVM = new Cesium.GeocoderViewModel({ scene: viewer.scene });
 
     async function runSearch(){
       const input = document.getElementById("searchInput");
@@ -492,7 +511,6 @@
         await geocoderVM.search();
       } catch (e){
         console.warn("Geocode failed:", e);
-        input.value = q;
         input.placeholder = "No results. Try 'Atok, Benguet' or 'Baguio City'";
       }
     }
@@ -527,13 +545,12 @@
     // =========================
     function norm(v){ return (v ?? "").toString().trim().toLowerCase(); }
 
-    // ✅ New classification colors:
     // Minimal (light green), Mild (true green), Moderate (yellow), Severe (blue)
     function baseRiskColor(levelRaw){
       const raw = (levelRaw ?? "").toString().trim();
       const level = raw.toLowerCase();
 
-      // numeric (common)
+      // numeric
       if (raw === "3") return Cesium.Color.fromCssColorString("#1565c0"); // Severe
       if (raw === "2") return Cesium.Color.fromCssColorString("#feef01"); // Moderate
       if (raw === "1") return Cesium.Color.fromCssColorString("#2e7d32"); // Mild
@@ -545,7 +562,6 @@
       if (level === "mild")     return Cesium.Color.fromCssColorString("#2e7d32");
       if (level === "minimal")  return Cesium.Color.fromCssColorString("#a5d6a7");
 
-      // fallback (treat unknown as minimal-ish)
       return Cesium.Color.fromCssColorString("#a5d6a7");
     }
 
@@ -558,12 +574,6 @@
         .replaceAll("'","&#039;");
     }
 
-    function titleCase(s){
-      const t = String(s ?? "").trim();
-      if (!t) return "Minimal";
-      return t.charAt(0).toUpperCase() + t.slice(1);
-    }
-
     function riskLabel(levelRaw){
       const raw = (levelRaw ?? "").toString().trim();
       const level = raw.toLowerCase();
@@ -573,7 +583,7 @@
       if (raw === "1" || level === "mild") return "Mild";
       if (raw === "0" || level === "minimal") return "Minimal";
 
-      return titleCase(raw || "Minimal");
+      return raw ? (raw.charAt(0).toUpperCase() + raw.slice(1)) : "Minimal";
     }
 
     function riskPillHtml(levelRaw){
@@ -613,53 +623,53 @@
     }
 
     // =========================
-    // IMPACT CONTENT (EDIT TEXTS HERE)
+    // IMPACT CONTENT (EMOJI-ENHANCED)
     // =========================
     const IMPACTS = {
       minimal: {
         impacts: [
-          "Frost is unlikely based on current classification.",
-          "Local cold pockets may still occur in low-lying areas."
+          "🌿 Frost is unlikely based on current classification.",
+          "🧊 Cold pockets may still occur in low-lying areas."
         ],
         actions: [
-          "Continue routine monitoring of advisories.",
-          "Check early morning temperature observations when available."
+          "📡 Continue routine monitoring of advisories.",
+          "🌡️ Check early morning temperature observations when available."
         ]
       },
       mild: {
         impacts: [
-          "Light frost possible in exposed areas (valleys/slopes).",
-          "Minor leaf scorching on sensitive crops and seedlings.",
-          "Potential slowdown in growth for leafy vegetables."
+          "❄️ Light frost possible in exposed areas (valleys/slopes).",
+          "🍃 Minor leaf scorching on sensitive crops and seedlings.",
+          "📉 Possible slowdown in growth for leafy vegetables."
         ],
         actions: [
-          "Cover seedlings (plastic/row cover/net) overnight.",
-          "Light irrigation before sunrise (if feasible).",
-          "Monitor early morning temperatures and advisories."
+          "🧤 Cover seedlings (plastic/row cover/net) overnight.",
+          "💧 Light irrigation before sunrise (if feasible).",
+          "🕒 Monitor early morning temperatures and advisories."
         ]
       },
       moderate: {
         impacts: [
-          "Visible frost formation possible.",
-          "Leaf burn and quality reduction (leafy veg/cabbage outer leaves).",
-          "Reduced yield potential for potato and other highland crops."
+          "❄️🌬️ Visible frost formation possible.",
+          "🥬 Leaf burn and quality reduction (leafy veg/cabbage outer leaves).",
+          "🥔 Reduced yield potential for potato and other highland crops."
         ],
         actions: [
-          "Use row covers or tunnels; prioritize high-value plots.",
-          "Irrigate strategically during frost window (where applicable).",
-          "Avoid late-day nitrogen-heavy fertilization before cold nights."
+          "🏕️ Use row covers/tunnels; prioritize high-value plots.",
+          "💧 Irrigate strategically during frost window (where applicable).",
+          "🧪 Avoid late-day nitrogen-heavy fertilization before cold nights."
         ]
       },
       severe: {
         impacts: [
-          "High likelihood of damaging frost; tissue injury and dieback possible.",
-          "Major yield loss risk for potato, cabbage, and seedlings.",
-          "Severe quality downgrade (burned leaves/heads, stunted growth)."
+          "🚨❄️ High likelihood of damaging frost; tissue injury/dieback possible.",
+          "📉 Major yield loss risk for potato, cabbage, and seedlings.",
+          "⚠️ Severe quality downgrade (burned leaves/heads, stunted growth)."
         ],
         actions: [
-          "Harvest mature crops early if a severe frost night is expected.",
-          "Deploy protective covering + irrigation/windbreaks if available.",
-          "Document damage immediately for reporting/insurance claims."
+          "🧺 Harvest mature crops early if a severe frost night is expected.",
+          "🛡️ Deploy protective covering + irrigation/windbreaks if available.",
+          "📸 Document damage immediately for reporting/insurance claims."
         ]
       }
     };
@@ -677,7 +687,7 @@
     }
 
     // =========================
-    // LOAD BOUNDARY
+    // LOAD BOUNDARY (municipality outline)
     // =========================
     async function loadBoundary(){
       const resource = await Cesium.IonResource.fromAssetId(BOUNDARY_ASSET_ID);
@@ -711,7 +721,7 @@
     }
 
     // =========================
-    // LOAD RISK LAYER
+    // LOAD RISK LAYER (barangay polys + THIN OUTLINE)
     // =========================
     async function loadRisk(){
       const resource = await Cesium.IonResource.fromAssetId(RISK_ASSET_ID);
@@ -733,8 +743,12 @@
         e.polygon.height = undefined;
         e.polygon.extrudedHeight = undefined;
         e.polygon.perPositionHeight = false;
-        e.polygon.outline = false;
 
+        // ✅ thin outline per barangay (from RiskCls geojson)
+        e.polygon.outline = true;
+        e.polygon.outlineColor = BARANGAY_OUTLINE_COLOR;
+
+        // remove Cesium popup strings
         e.name = "";
         e.description = "";
       }
