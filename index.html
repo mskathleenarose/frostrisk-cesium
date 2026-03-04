@@ -10,7 +10,7 @@
   <style>
     html, body, #cesiumContainer { width:100%; height:100%; margin:0; padding:0; overflow:hidden; }
 
-    /* ================= PANEL ================= */
+    /* ================= PANEL (LEFT) ================= */
     .panel{
       position:absolute; top:12px; left:12px; z-index:999;
       background:rgba(255,255,255,0.95); padding:10px 12px; border-radius:10px;
@@ -25,6 +25,68 @@
     .legend{ margin-top:10px; line-height:1.6; }
     .swatch{ display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:6px; vertical-align:middle; }
     .small{ color:#444; font-size:12px; }
+
+    /* ================= IMPACT PANEL (RIGHT) ================= */
+    .impactPanel{
+      position:absolute; top:12px; right:12px; z-index:999;
+      width:340px; max-width: calc(100vw - 24px);
+      background:rgba(255,255,255,0.96);
+      border-radius:14px;
+      box-shadow:0 10px 26px rgba(0,0,0,0.22);
+      font-family:Arial,sans-serif;
+      overflow:hidden;
+    }
+    .impactHeader{
+      padding:12px 12px 10px;
+      background: linear-gradient(135deg, rgba(11,74,139,1), rgba(7,55,99,1));
+      color:#fff;
+      display:flex; justify-content:space-between; align-items:flex-start; gap:10px;
+    }
+    .impactHeader b{ font-size:14px; }
+    .impactHeader .sub{ font-size:12px; opacity:0.9; margin-top:2px; }
+    .impactBody{ padding:12px; }
+    .impactCard{
+      border:1px solid rgba(0,0,0,0.10);
+      border-radius:12px;
+      padding:12px;
+      background:#fff;
+    }
+    .impactSectionTitle{
+      font-weight:900; color:#333; margin-top:12px; margin-bottom:6px;
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .impactList{ margin:0; padding-left:18px; color:#333; line-height:1.5; }
+    .muted{ color:#666; font-size:12px; }
+    .pill{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:5px 10px; border-radius:999px;
+      font-weight:900; font-size:12px;
+      border:1px solid rgba(0,0,0,0.08);
+      user-select:none;
+    }
+    .pillDot{
+      width:8px; height:8px; border-radius:50%;
+      display:inline-block; opacity:.85;
+    }
+    .impactFooter{
+      padding:10px 12px;
+      border-top:1px solid rgba(0,0,0,0.08);
+      font-size:12px;
+      color:#555;
+      background:rgba(0,0,0,0.02);
+    }
+    .impactBtn{
+      border:none;
+      background:rgba(255,255,255,0.18);
+      color:#fff;
+      padding:6px 10px;
+      border-radius:10px;
+      cursor:pointer;
+      font-weight:800;
+      font-size:12px;
+    }
+    .impactPanel.collapsed .impactBody,
+    .impactPanel.collapsed .impactFooter{ display:none; }
 
     /* ================= Nicer Cesium popup ================= */
     .cesium-infoBox {
@@ -46,7 +108,7 @@
 <body>
   <div id="cesiumContainer"></div>
 
-  <!-- ================= CONTROL PANEL ================= -->
+  <!-- ================= CONTROL PANEL (LEFT) ================= -->
   <div class="panel" id="controlPanel">
     <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
       <div>
@@ -94,6 +156,49 @@
     </div>
   </div>
 
+  <!-- ================= IMPACT PANEL (RIGHT) ================= -->
+  <div class="impactPanel" id="impactPanel">
+    <div class="impactHeader">
+      <div>
+        <b>Impact Guide</b>
+        <div class="sub">Click a barangay to view impacts & actions</div>
+      </div>
+      <button class="impactBtn" id="impactToggleBtn">Hide</button>
+    </div>
+
+    <div class="impactBody">
+      <div class="impactCard">
+        <div id="impactPlace" style="font-size:16px; font-weight:900; margin-bottom:2px;">No selection</div>
+        <div id="impactMun" class="muted" style="margin-bottom:10px;">Select a barangay polygon on the map.</div>
+
+        <div class="impactSectionTitle">
+          <span>Frost Risk Level</span>
+          <span id="impactRiskPill"></span>
+        </div>
+
+        <div class="impactSectionTitle"><span>Possible impacts</span></div>
+        <ul class="impactList" id="impactList">
+          <li>—</li>
+        </ul>
+
+        <div class="impactSectionTitle"><span>Recommended actions</span></div>
+        <ul class="impactList" id="actionList">
+          <li>—</li>
+        </ul>
+
+        <div class="impactSectionTitle"><span>Insurance & reporting</span></div>
+        <ul class="impactList" id="insList">
+          <li>Report crop damage within <b>7 days</b> to MAO/PCIC (if insured).</li>
+          <li>Document with photos, date/time, and farm location.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="impactFooter">
+      Tip: This panel is separate from the Cesium popup. It updates on selection.
+    </div>
+  </div>
+
   <script>
     // =========================
     // CONFIG
@@ -114,7 +219,7 @@
     // =========================
     // TOKEN
     // =========================
-    Cesium.Ion.defaultAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1NjIyMmEzMy01NmJkLTQwYTQtYjM5MS02NTA4ZmNjMGI1MTAiLCJpZCI6MzU5OTE1LCJpYXQiOjE3NjMwMDg3NTl9.BD0gTbvODVhDqjfV-i31W0UitaC2WHbdA33zsJuzSzg";
+    Cesium.Ion.defaultAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJmNDNkZTM0OS00YjJjLTQ1NGYtODY3OC04NGJkNTMyNTVjMzciLCJpZCI6MzU5OTE1LCJpYXQiOjE3NzA2MTk2NTR9.7AMr5xm4NqjOYC-WuCZv1OHw-JwpQsQaXCOl01SE0_0";
 
     // =========================
     // VIEWER
@@ -130,10 +235,7 @@
     });
 
     viewer.scene.mode = Cesium.SceneMode.SCENE3D;
-
-    // IMPORTANT: keep overlays visible
     viewer.scene.globe.depthTestAgainstTerrain = false;
-
     viewer.scene.globe.enableLighting = true;
     viewer.shadows = true;
     viewer.scene.globe.terrainExaggeration = 1.6;
@@ -145,13 +247,23 @@
     });
 
     // =========================
-    // PANEL TOGGLE
+    // PANEL TOGGLE (LEFT)
     // =========================
     document.getElementById("toggleBtn").addEventListener("click", () => {
       const panel = document.getElementById("controlPanel");
       panel.classList.toggle("collapsed");
       document.getElementById("toggleBtn").textContent =
         panel.classList.contains("collapsed") ? "Show" : "Hide";
+    });
+
+    // =========================
+    // PANEL TOGGLE (RIGHT)
+    // =========================
+    document.getElementById("impactToggleBtn").addEventListener("click", () => {
+      const p = document.getElementById("impactPanel");
+      p.classList.toggle("collapsed");
+      document.getElementById("impactToggleBtn").textContent =
+        p.classList.contains("collapsed") ? "Show" : "Hide";
     });
 
     // =========================
@@ -163,12 +275,10 @@
       const raw = (levelRaw ?? "").toString().trim();
       const level = raw.toLowerCase();
 
-      // numeric support
       if (raw === "3") return Cesium.Color.fromCssColorString("#1565c0"); // Severe
       if (raw === "2") return Cesium.Color.fromCssColorString("#feef01"); // Moderate
       if (raw === "1") return Cesium.Color.fromCssColorString("#2e7d32"); // Mild
 
-      // text support
       if (level === "severe")   return Cesium.Color.fromCssColorString("#1565c0");
       if (level === "moderate") return Cesium.Color.fromCssColorString("#feef01");
       if (level === "mild")     return Cesium.Color.fromCssColorString("#2e7d32");
@@ -199,7 +309,7 @@
       return titleCase(raw || "None");
     }
 
-    function riskBadge(levelRaw){
+    function riskPillHtml(levelRaw){
       const levelNorm = norm(levelRaw);
       const label = riskLabel(levelRaw);
 
@@ -209,24 +319,91 @@
         (levelRaw === "1" || levelNorm === "mild")     ? "#2e7d32" : "#e0e0e0";
 
       const fg = (bg === "#feef01" || bg === "#e0e0e0") ? "#111" : "#fff";
+      const dot = (bg === "#feef01" || bg === "#e0e0e0") ? "#111" : "#fff";
 
-      return `<span style="
-        display:inline-flex; align-items:center; gap:6px;
-        padding:5px 10px; border-radius:999px;
-        background:${bg}; color:${fg};
-        font-weight:900; font-size:12px;
-      ">
-        <span style="
-          width:8px; height:8px; border-radius:50%;
-          background:${fg}; opacity:.85;
-          display:inline-block;
-        "></span>
-        ${escapeHtml(label)}
-      </span>`;
+      return `
+        <span class="pill" style="background:${bg}; color:${fg};">
+          <span class="pillDot" style="background:${dot};"></span>
+          ${escapeHtml(label)}
+        </span>
+      `;
+    }
+
+    function setList(el, items){
+      el.innerHTML = "";
+      if (!items || !items.length){
+        el.innerHTML = "<li>—</li>";
+        return;
+      }
+      for (const it of items){
+        const li = document.createElement("li");
+        li.textContent = it;
+        el.appendChild(li);
+      }
     }
 
     // =========================
-    // LOAD BOUNDARY (municipal outline as clamped polylines)
+    // IMPACT CONTENT (EDIT THESE TEXTS)
+    // =========================
+    const IMPACTS = {
+      none: {
+        impacts: [
+          "No frost expected based on current classification.",
+          "Continue monitoring advisories and local conditions."
+        ],
+        actions: [
+          "Routine crop management.",
+          "Check forecast updates (especially at night/early morning)."
+        ]
+      },
+      mild: {
+        impacts: [
+          "Light frost possible in exposed areas (especially valleys/slopes).",
+          "Minor leaf scorching on sensitive crops and seedlings.",
+          "Potential slowdown in growth for leafy vegetables."
+        ],
+        actions: [
+          "Cover seedlings (plastic/row cover/net) overnight.",
+          "Light irrigation before sunrise (if feasible).",
+          "Monitor early morning temperatures and advisories."
+        ]
+      },
+      moderate: {
+        impacts: [
+          "Visible frost formation possible.",
+          "Leaf burn and quality reduction (leafy veg/cabbage outer leaves).",
+          "Reduced yield potential for potato and other highland crops."
+        ],
+        actions: [
+          "Use row covers or tunnels; prioritize high-value plots.",
+          "Irrigate strategically during frost window (where applicable).",
+          "Avoid late-day nitrogen-heavy fertilization before cold nights."
+        ]
+      },
+      severe: {
+        impacts: [
+          "High likelihood of damaging frost; tissue injury and plant dieback possible.",
+          "Major yield loss risk for potato, cabbage, and seedlings.",
+          "Severe quality downgrade (burned leaves/heads, stunted growth)."
+        ],
+        actions: [
+          "Harvest mature crops early if a severe frost night is expected.",
+          "Deploy protective covering + irrigation/windbreaks if available.",
+          "Document damage immediately for reporting/insurance claims."
+        ]
+      }
+    };
+
+    function impactKeyFromRisk(riskRaw){
+      const r = norm(riskRaw);
+      if (riskRaw === "3" || r === "severe") return "severe";
+      if (riskRaw === "2" || r === "moderate") return "moderate";
+      if (riskRaw === "1" || r === "mild") return "mild";
+      return "none";
+    }
+
+    // =========================
+    // LOAD BOUNDARY
     // =========================
     async function loadBoundary(){
       const resource = await Cesium.IonResource.fromAssetId(BOUNDARY_ASSET_ID);
@@ -238,7 +415,6 @@
       for (const e of ds.entities.values){
         if (!e.polygon) continue;
 
-        // Hide polygon fill; we only want the boundary line
         e.polygon.material = Cesium.Color.TRANSPARENT;
         e.polygon.outline = false;
 
@@ -254,7 +430,6 @@
           }
         });
 
-        // Prevent boundary polygons from producing UUID popups
         e.name = "";
         e.description = "";
       }
@@ -263,7 +438,7 @@
     }
 
     // =========================
-    // LOAD RISK LAYER (same format as your screenshot)
+    // LOAD RISK LAYER
     // =========================
     async function loadRisk(){
       const resource = await Cesium.IonResource.fromAssetId(RISK_ASSET_ID);
@@ -275,29 +450,24 @@
       for (const e of ds.entities.values){
         if (!e.polygon) continue;
 
-        // Get RiskCls
         const riskCls =
           e.properties?.[RISK_FIELD]?.getValue?.(now) ??
           e.properties?.[RISK_FIELD]?.getValue?.() ??
           "None";
 
-        // Store base color for slider
         e._baseRiskColor = baseRiskColor(riskCls);
 
-        // Normal fill, draped by clampToGround
         e.polygon.height = undefined;
         e.polygon.extrudedHeight = undefined;
         e.polygon.perPositionHeight = false;
         e.polygon.outline = false;
 
-        // Fields: ADM4_EN = barangay, ADM3_EN = municipality
         const barangay = e.properties?.ADM4_EN?.getValue?.(now) ?? "Unknown barangay";
         const municipality = e.properties?.ADM3_EN?.getValue?.(now) ?? "Unknown municipality";
 
-        // ✅ Title line in popup header (no UUID)
         e.name = `${barangay}, ${municipality}`;
 
-        // ✅ Body: EXACT layout style like your screenshot
+        // keep your InfoBox content
         e.description = `
           <div style="font-family:Arial,sans-serif; font-size:13px; line-height:1.45;">
             <div style="font-size:18px; font-weight:900; margin:2px 0 2px;">
@@ -320,7 +490,7 @@
 
               <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:10px;">
                 <div>
-                  ${riskBadge(riskCls)}
+                  <div style="margin-bottom:6px;">${riskPillHtml(riskCls)}</div>
                   <div style="margin-top:8px; color:#666;">
                     Raw value: <b>${escapeHtml(riskLabel(riskCls))}</b>
                   </div>
@@ -343,7 +513,7 @@
     }
 
     // =========================
-    // UI
+    // UI (opacity + exaggeration)
     // =========================
     function wireUI(riskDS){
       const slider = document.getElementById("riskSlider");
@@ -375,7 +545,59 @@
     }
 
     // =========================
-    // RUN (auto-zoom to target area)
+    // IMPACT PANEL WIRING
+    // =========================
+    function wireImpactPanel(riskDS){
+      const placeEl = document.getElementById("impactPlace");
+      const munEl = document.getElementById("impactMun");
+      const pillEl = document.getElementById("impactRiskPill");
+      const impactsEl = document.getElementById("impactList");
+      const actionsEl = document.getElementById("actionList");
+
+      const now = Cesium.JulianDate.now();
+
+      function clearPanel(){
+        placeEl.textContent = "No selection";
+        munEl.textContent = "Select a barangay polygon on the map.";
+        pillEl.innerHTML = "";
+        setList(impactsEl, ["—"]);
+        setList(actionsEl, ["—"]);
+      }
+
+      // initialize
+      clearPanel();
+
+      // updates whenever selected entity changes
+      viewer.selectedEntityChanged.addEventListener((entity) => {
+        if (!entity || !entity.properties || !entity.polygon){
+          clearPanel();
+          return;
+        }
+
+        // Only respond to entities from the risk datasource
+        // (prevents boundary / other entities from triggering)
+        const isFromRisk = riskDS.entities.values.includes(entity);
+        if (!isFromRisk){
+          clearPanel();
+          return;
+        }
+
+        const barangay = entity.properties?.ADM4_EN?.getValue?.(now) ?? "Unknown barangay";
+        const municipality = entity.properties?.ADM3_EN?.getValue?.(now) ?? "Unknown municipality";
+        const riskCls = entity.properties?.[RISK_FIELD]?.getValue?.(now) ?? "None";
+
+        placeEl.textContent = barangay;
+        munEl.textContent = `Municipality: ${municipality}`;
+        pillEl.innerHTML = riskPillHtml(riskCls);
+
+        const key = impactKeyFromRisk(riskCls);
+        setList(impactsEl, IMPACTS[key].impacts);
+        setList(actionsEl, IMPACTS[key].actions);
+      });
+    }
+
+    // =========================
+    // RUN
     // =========================
     (async () => {
       try {
@@ -383,8 +605,8 @@
         const riskDS = await loadRisk();
 
         wireUI(riskDS);
+        wireImpactPanel(riskDS);
 
-        // ✅ Auto-zoom to your risk layer extent
         await viewer.flyTo(riskDS);
 
       } catch (err){
