@@ -15,16 +15,7 @@
       width:100%;
       height:100%;
       font-family:'Open Sans', Arial, sans-serif;
-    }
-    html, body{
-      width:100%;
-      height:100%;
-      margin:0;
-      padding:0;
-      overflow:hidden;
-    }
 
-    #frost3dApp{
       --brand:#073763;
       --brand2:#0b4a8b;
 
@@ -38,7 +29,16 @@
       --topOffset: 0px;
     }
 
-    /* Make sure Cesium canvas is truly full */
+    html, body{
+      width:100%;
+      height:100%;
+      margin:0;
+      padding:0;
+      overflow:hidden;
+      background:#000;
+    }
+
+    /* Make Cesium container full */
     #frost3dApp #cesiumContainer{
       position:absolute;
       inset:0;
@@ -55,8 +55,6 @@
 
       width: min(560px, calc(100vw - var(--sidebarCurrentW) - 24px));
       height:48px;
-      min-height:48px;
-      max-height:48px;
 
       border-radius:14px;
       background: rgba(7,55,99,0.92);
@@ -537,7 +535,7 @@
       });
 
       // =========================
-      // SIDEBAR + DOCKED SEARCH POSITION
+      // SIDEBAR DOCKING (keeps search bar beside sidebar)
       // =========================
       const sidebar = document.getElementById("sidebar");
       const sidebarToggleBtn = document.getElementById("sidebarToggleBtn");
@@ -681,10 +679,22 @@
       }
 
       // =========================
-      // BORDER BUILDER + HIGHLIGHTER
+      // BORDER BUILDER + HIGHLIGHTER (VISIBLE EVEN AT 100% OPACITY)
       // =========================
       function makeGlowMaterial(color, glowPower){
         return new Cesium.PolylineGlowMaterialProperty({ glowPower, color });
+      }
+
+      // raise border slightly above polygon to avoid z-fighting
+      function elevatePositions(positions, meters){
+        if (!positions || positions.length < 2) return positions;
+        const out = [];
+        for (const p of positions){
+          const c = Cesium.Cartographic.fromCartesian(p);
+          c.height = (c.height || 0) + meters;
+          out.push(Cesium.Cartesian3.fromRadians(c.longitude, c.latitude, c.height));
+        }
+        return out;
       }
 
       function createBorderPolylineForPolygon(polygonEntity){
@@ -692,15 +702,24 @@
         const hierarchy = polygonEntity?.polygon?.hierarchy?.getValue(now);
         if (!hierarchy || !hierarchy.positions || hierarchy.positions.length < 2) return null;
 
-        const positions = hierarchy.positions.slice();
-        positions.push(hierarchy.positions[0]);
+        const base = hierarchy.positions.slice();
+        base.push(hierarchy.positions[0]); // close loop
+
+        // ✅ lift border so it sits above the fill even at opacity=100
+        const raised = elevatePositions(base, 12);
 
         return viewer.entities.add({
           polyline: {
-            positions,
-            clampToGround: true,
+            positions: raised,
+            clampToGround: false, // ✅ important
             width: BORDER_DEFAULT.width,
-            material: makeGlowMaterial(BORDER_DEFAULT.color, BORDER_DEFAULT.glowPower)
+            material: makeGlowMaterial(BORDER_DEFAULT.color, BORDER_DEFAULT.glowPower),
+
+            // ✅ still visible if depth says "behind"
+            depthFailMaterial: makeGlowMaterial(
+              Cesium.Color.WHITE.withAlpha(0.95),
+              Math.max(BORDER_DEFAULT.glowPower, 0.18)
+            )
           }
         });
       }
@@ -711,6 +730,12 @@
         if (!borderEntity?.polyline) return;
         borderEntity.polyline.width = style.width;
         borderEntity.polyline.material = makeGlowMaterial(style.color, style.glowPower);
+
+        // keep depth-fail bright too
+        borderEntity.polyline.depthFailMaterial = makeGlowMaterial(
+          style.color.withAlpha(0.98),
+          Math.max(style.glowPower, 0.25)
+        );
       }
 
       function setSelectedBorder(riskEntity){
@@ -771,6 +796,7 @@
           e._baseRiskColor = baseRiskColor(riskCls);
           e.polygon.perPositionHeight = false;
 
+          // ✅ border made "above" the polygon so it stays visible at 100% opacity
           e._borderEntity = createBorderPolylineForPolygon(e);
 
           e.name = "";
