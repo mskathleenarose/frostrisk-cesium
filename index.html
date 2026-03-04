@@ -10,25 +10,28 @@
   <style>
     html, body, #cesiumContainer { width:100%; height:100%; margin:0; padding:0; overflow:hidden; }
 
-    /* ================= TOP SEARCH BAR (like screenshot) ================= */
+    /* ================= TOP SEARCH BAR (smaller / tighter) ================= */
     .topBar{
       position:absolute;
       top:10px;
       left:50%;
       transform:translateX(-50%);
       z-index:1005;
-      width:min(980px, calc(100vw - 24px));
-      height:56px;
+
+      /* ✅ smaller overall */
+      width:min(860px, calc(100vw - 24px));
+      height:48px;
       border-radius:14px;
+
       background:rgba(20,27,36,0.92);
       backdrop-filter: blur(8px);
-      box-shadow:0 14px 34px rgba(0,0,0,0.24);
+      box-shadow:0 12px 30px rgba(0,0,0,0.22);
       border:1px solid rgba(255,255,255,0.08);
 
       display:flex;
       align-items:center;
-      gap:12px;
-      padding:10px 12px;
+      gap:10px;
+      padding:8px 10px;
       font-family: Arial, sans-serif;
       color:#fff;
     }
@@ -36,8 +39,8 @@
     .brand{
       display:flex;
       align-items:center;
-      gap:10px;
-      padding:6px 10px;
+      gap:8px;
+      padding:5px 9px;
       border-radius:12px;
       background:rgba(255,255,255,0.06);
       border:1px solid rgba(255,255,255,0.08);
@@ -45,23 +48,23 @@
       letter-spacing:.3px;
       white-space:nowrap;
     }
-    .brand .flame{ font-size:18px; line-height:1; }
-    .brand .name{ font-size:18px; }
+    .brand .flame{ font-size:16px; line-height:1; }
+    .brand .name{ font-size:16px; }
     .brand .name span{ opacity:0.9; font-weight:900; }
 
     .searchWrap{
       flex:1;
-      height:40px;
+      height:34px;                 /* ✅ smaller */
       border-radius:999px;
       background:rgba(255,255,255,0.06);
       border:1px solid rgba(255,255,255,0.10);
       display:flex;
       align-items:center;
-      padding:0 14px;
-      gap:10px;
+      padding:0 12px;
+      gap:8px;
     }
     .searchIcon{
-      width:18px; height:18px; opacity:0.9; flex:0 0 auto;
+      width:16px; height:16px; opacity:0.9; flex:0 0 auto;
     }
     .searchInput{
       flex:1;
@@ -70,14 +73,14 @@
       outline:none;
       background:transparent;
       color:#fff;
-      font-size:16px;
+      font-size:14px;              /* ✅ smaller */
       font-weight:700;
     }
     .searchInput::placeholder{ color: rgba(255,255,255,0.72); font-weight:600; }
 
     .goBtn{
-      width:44px;
-      height:40px;
+      width:38px;                  /* ✅ smaller */
+      height:34px;
       border:none;
       border-radius:999px;
       background:rgba(255,255,255,0.10);
@@ -88,12 +91,12 @@
       justify-content:center;
     }
     .goBtn:hover{ background:rgba(255,255,255,0.16); }
-    .goIcon{ width:18px; height:18px; opacity:0.92; }
+    .goIcon{ width:16px; height:16px; opacity:0.92; }
 
     /* ================= LEFT CONTROL PANEL ================= */
     .panel{
       position:absolute;
-      top:78px; /* ⬅️ pushed down so it doesn't overlap the topBar */
+      top:68px; /* ⬅️ a bit closer since topBar is smaller */
       left:12px;
       z-index:999;
       background:rgba(255,255,255,0.95);
@@ -129,7 +132,7 @@
     /* ================= SINGLE RIGHT INFO PANEL (SCROLL) ================= */
     .impactPanel{
       position:absolute;
-      top:78px; /* ⬅️ pushed down so it doesn't overlap the topBar */
+      top:68px; /* ⬅️ match left */
       right:12px;
       z-index:999;
       width:360px;
@@ -143,8 +146,7 @@
       backdrop-filter: blur(8px);
       transition: transform .18s ease, opacity .18s ease;
 
-      /* ✅ overall max height so it fits the viewport */
-      max-height: calc(100vh - 90px);
+      max-height: calc(100vh - 80px);
       display:flex;
       flex-direction:column;
     }
@@ -181,11 +183,10 @@
       font-size:12px;
     }
 
-    /* ✅ SCROLL AREA */
     .impactBody{
       padding:12px;
-      overflow-y:auto;         /* ✅ scroll here */
-      flex:1 1 auto;           /* ✅ fill available height */
+      overflow-y:auto;
+      flex:1 1 auto;
     }
 
     .impactCard{
@@ -281,7 +282,6 @@
       flex:0 0 auto;
     }
 
-    /* Make sure Cesium credits don't overlap too much */
     .cesium-widget-credits{ right:12px !important; bottom:6px !important; }
   </style>
 </head>
@@ -297,7 +297,6 @@
     </div>
 
     <div class="searchWrap">
-      <!-- magnifier -->
       <svg class="searchIcon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="white" stroke-opacity=".85" stroke-width="2"/>
         <path d="M16.5 16.5 21 21" stroke="white" stroke-opacity=".85" stroke-width="2" stroke-linecap="round"/>
@@ -306,7 +305,6 @@
       <input id="searchInput" class="searchInput" placeholder="Search place (e.g., Atok, Benguet)" />
 
       <button id="searchBtn" class="goBtn" title="Search">
-        <!-- arrow -->
         <svg class="goIcon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M5 12h12" stroke="white" stroke-opacity=".9" stroke-width="2" stroke-linecap="round"/>
           <path d="M13 6l6 6-6 6" stroke="white" stroke-opacity=".9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -341,7 +339,7 @@
 
       <div class="legend">
         <b>Legend</b><br>
-        <span class="swatch" style="background:#e0e0e0"></span>None / Minimal<br>
+        <span class="swatch" style="background:#a5d6a7"></span>Minimal<br>
         <span class="swatch" style="background:#2e7d32"></span>Mild<br>
         <span class="swatch" style="background:#feef01"></span>Moderate<br>
         <span class="swatch" style="background:#1565c0"></span>Severe
@@ -385,7 +383,7 @@
           </div>
           <div style="text-align:right;">
             <b>DATA</b>
-            <div class="muted" id="riskDataText">FrostRiskPrelim (Ion)</div>
+            <div class="muted" id="riskDataText">FrostRisk_v1 (Ion)</div>
           </div>
         </div>
 
@@ -422,7 +420,7 @@
     // =========================
     // CONFIG
     // =========================
-    const RISK_ASSET_ID = 4431024;         // FrostRiskPrelim (GeoJSON)
+    const RISK_ASSET_ID = 4498466;         // ✅ FrostRisk_v1 (geojson)
     const BOUNDARY_ASSET_ID = 4076193;     // Benguet Municipality (GeoJSON)
     const RISK_FIELD = "RiskCls";          // risk column
 
@@ -449,10 +447,8 @@
       timeline: false,
       baseLayerPicker: true,
       sceneModePicker: true,
-      geocoder: false, // ✅ we use the custom top bar instead
+      geocoder: false,
       homeButton: true,
-
-      // ✅ single-panel UI (no Cesium InfoBox)
       infoBox: false,
       selectionIndicator: false
     });
@@ -474,7 +470,6 @@
     // =========================
     const geocoderVM = new Cesium.GeocoderViewModel({
       scene: viewer.scene
-      // uses Cesium's default geocoder services (Ion + others)
     });
 
     async function runSearch(){
@@ -486,10 +481,8 @@
 
       try {
         await geocoderVM.search();
-        // GeocoderViewModel will fly the camera automatically when it resolves
       } catch (e){
         console.warn("Geocode failed:", e);
-        // Optional: quick feedback
         input.value = q;
         input.placeholder = "No results. Try 'Atok, Benguet' or 'Baguio City'";
       }
@@ -525,19 +518,26 @@
     // =========================
     function norm(v){ return (v ?? "").toString().trim().toLowerCase(); }
 
+    // ✅ New classification colors:
+    // Minimal (light green), Mild (true green), Moderate (yellow), Severe (blue)
     function baseRiskColor(levelRaw){
       const raw = (levelRaw ?? "").toString().trim();
       const level = raw.toLowerCase();
 
+      // numeric (common)
       if (raw === "3") return Cesium.Color.fromCssColorString("#1565c0"); // Severe
       if (raw === "2") return Cesium.Color.fromCssColorString("#feef01"); // Moderate
       if (raw === "1") return Cesium.Color.fromCssColorString("#2e7d32"); // Mild
+      if (raw === "0") return Cesium.Color.fromCssColorString("#a5d6a7"); // Minimal
 
+      // text
       if (level === "severe")   return Cesium.Color.fromCssColorString("#1565c0");
       if (level === "moderate") return Cesium.Color.fromCssColorString("#feef01");
       if (level === "mild")     return Cesium.Color.fromCssColorString("#2e7d32");
+      if (level === "minimal")  return Cesium.Color.fromCssColorString("#a5d6a7");
 
-      return Cesium.Color.fromCssColorString("#e0e0e0");
+      // fallback (treat unknown as minimal-ish)
+      return Cesium.Color.fromCssColorString("#a5d6a7");
     }
 
     function escapeHtml(s){
@@ -551,28 +551,35 @@
 
     function titleCase(s){
       const t = String(s ?? "").trim();
-      if (!t) return "None";
+      if (!t) return "Minimal";
       return t.charAt(0).toUpperCase() + t.slice(1);
     }
 
     function riskLabel(levelRaw){
       const raw = (levelRaw ?? "").toString().trim();
-      if (raw === "3") return "Severe";
-      if (raw === "2") return "Moderate";
-      if (raw === "1") return "Mild";
-      return titleCase(raw || "None");
+      const level = raw.toLowerCase();
+
+      if (raw === "3" || level === "severe") return "Severe";
+      if (raw === "2" || level === "moderate") return "Moderate";
+      if (raw === "1" || level === "mild") return "Mild";
+      if (raw === "0" || level === "minimal") return "Minimal";
+
+      return titleCase(raw || "Minimal");
     }
 
     function riskPillHtml(levelRaw){
+      const raw = (levelRaw ?? "").toString().trim();
       const levelNorm = norm(levelRaw);
       const label = riskLabel(levelRaw);
 
       const bg =
-        (levelRaw === "3" || levelNorm === "severe")   ? "#1565c0" :
-        (levelRaw === "2" || levelNorm === "moderate") ? "#feef01" :
-        (levelRaw === "1" || levelNorm === "mild")     ? "#2e7d32" : "#e0e0e0";
+        (raw === "3" || levelNorm === "severe")   ? "#1565c0" :
+        (raw === "2" || levelNorm === "moderate") ? "#feef01" :
+        (raw === "1" || levelNorm === "mild")     ? "#2e7d32" :
+        (raw === "0" || levelNorm === "minimal")  ? "#a5d6a7" :
+        "#a5d6a7";
 
-      const fg = (bg === "#feef01" || bg === "#e0e0e0") ? "#111" : "#fff";
+      const fg = (bg === "#feef01" || bg === "#a5d6a7") ? "#111" : "#fff";
       const dot = fg;
 
       return `
@@ -600,14 +607,14 @@
     // IMPACT CONTENT (EDIT TEXTS HERE)
     // =========================
     const IMPACTS = {
-      none: {
+      minimal: {
         impacts: [
-          "No frost expected based on current classification.",
-          "Continue monitoring advisories and local conditions."
+          "Frost is unlikely based on current classification.",
+          "Local cold pockets may still occur in low-lying areas."
         ],
         actions: [
-          "Routine crop management.",
-          "Check forecast updates (night/early morning)."
+          "Continue routine monitoring of advisories.",
+          "Check early morning temperature observations when available."
         ]
       },
       mild: {
@@ -630,13 +637,13 @@
         ],
         actions: [
           "Use row covers or tunnels; prioritize high-value plots.",
-          "Irrigate strategically during frost window (where applicable); use water sprayer.",
+          "Irrigate strategically during frost window (where applicable).",
           "Avoid late-day nitrogen-heavy fertilization before cold nights."
         ]
       },
       severe: {
         impacts: [
-          "High likelihood of damaging frost; tissue injury possible.",
+          "High likelihood of damaging frost; tissue injury and dieback possible.",
           "Major yield loss risk for potato, cabbage, and seedlings.",
           "Severe quality downgrade (burned leaves/heads, stunted growth)."
         ],
@@ -649,11 +656,15 @@
     };
 
     function impactKeyFromRisk(riskRaw){
+      const raw = (riskRaw ?? "").toString().trim();
       const r = norm(riskRaw);
-      if (riskRaw === "3" || r === "severe") return "severe";
-      if (riskRaw === "2" || r === "moderate") return "moderate";
-      if (riskRaw === "1" || r === "mild") return "mild";
-      return "none";
+
+      if (raw === "3" || r === "severe") return "severe";
+      if (raw === "2" || r === "moderate") return "moderate";
+      if (raw === "1" || r === "mild") return "mild";
+      if (raw === "0" || r === "minimal") return "minimal";
+
+      return "minimal";
     }
 
     // =========================
@@ -684,7 +695,6 @@
           }
         });
 
-        // prevent selection on boundary polygons
         e.show = false;
       }
 
@@ -707,7 +717,7 @@
         const riskCls =
           e.properties?.[RISK_FIELD]?.getValue?.(now) ??
           e.properties?.[RISK_FIELD]?.getValue?.() ??
-          "None";
+          "Minimal";
 
         e._baseRiskColor = baseRiskColor(riskCls);
 
@@ -716,7 +726,6 @@
         e.polygon.perPositionHeight = false;
         e.polygon.outline = false;
 
-        // remove Cesium popup strings (we use our panel)
         e.name = "";
         e.description = "";
       }
@@ -777,7 +786,7 @@
         setList(impactsEl, ["—"]);
         setList(actionsEl, ["—"]);
         riskFieldText.textContent = RISK_FIELD;
-        riskDataText.textContent = "FrostRiskPrelim (Ion)";
+        riskDataText.textContent = "FrostRisk_v1 (Ion)";
         riskRawText.textContent = "—";
       }
 
@@ -795,14 +804,14 @@
 
         const barangay = entity.properties?.ADM4_EN?.getValue?.(now) ?? "Unknown barangay";
         const municipality = entity.properties?.ADM3_EN?.getValue?.(now) ?? "Unknown municipality";
-        const riskCls = entity.properties?.[RISK_FIELD]?.getValue?.(now) ?? "None";
+        const riskCls = entity.properties?.[RISK_FIELD]?.getValue?.(now) ?? "Minimal";
 
         placeEl.textContent = barangay;
         munEl.textContent = `Municipality: ${municipality}`;
         pillEl.innerHTML = riskPillHtml(riskCls);
 
         riskFieldText.textContent = RISK_FIELD;
-        riskDataText.textContent = "FrostRiskPrelim (Ion)";
+        riskDataText.textContent = "FrostRisk_v1 (Ion)";
         riskRawText.textContent = riskLabel(riskCls);
 
         const key = impactKeyFromRisk(riskCls);
